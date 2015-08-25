@@ -1,0 +1,5 @@
+{% extends "document_system/post_note.html" %}
+
+{% block title %} 議事録を編集 {% endblock%}
+
+{% block dest %}{% url 'document_system:edit_note' block_id=posting_block.id %}{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load bootstrap %}
+
+{% block title %} 議事録を投稿 {% endblock %}
+
+{% block content %}
+    <h3 class="page-header">議事録を投稿:{{posting_block.name}}</h3>
+    <form action="{% block dest %}{% url 'document_system:post_note' block_id=posting_block.id %}{% endblock %}" method="POST">{% csrf_token %}
+        {{form|bootstrap}}
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary">投稿</button>
+        </div>
+    </form>
+{% endblock %}

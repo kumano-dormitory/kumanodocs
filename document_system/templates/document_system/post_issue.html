@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load bootstrap %}
+
+{% block title %} 資料投稿 {% endblock %}
+
+{% block extrahead %}
+    <style type="text/css">
+        .multiple-checkbox ul {
+            list-style:none;
+            margin:0px;
+            padding:0px;
+        }
+        .multiple-checkbox ul li {
+            display:inline
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <h3 class="page-header">資料投稿</h3>
+    <form action="" method="POST" class="form-horizontal">{% csrf_token %}
+        {{form|bootstrap_horizontal}}
+        <div class="form-group">
+            <div class="col-sm-10 col-sm-offset-2">
+              <button type="submit" class="btn btn-primary">投稿</button>
+            </div>
+        </div>
+    </form>
+{% endblock %}

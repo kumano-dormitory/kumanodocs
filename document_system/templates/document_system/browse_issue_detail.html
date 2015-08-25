@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}{{issue.title}}{% endblock %}
+
+{% block content %}
+    <h1 class="page-header">資料閲覧</h3>
+
+    <h2>資料本文</h2>
+    <dl class="dl-horizontal">
+        <dt>日程</dt>
+        <dd>{{issue.meeting.meeting_date}}</dd><br>
+        <dt>資料の種類</dt>
+        <dd>{{issue.issue_types.all|join:"・"}}</dd><br>
+        <dt>タイトル</dt>
+        <dd>{{issue.title}}</dd><br>
+        <dt>文責者</dt>
+        <dd>{{issue.author}}</dd><br>
+        <dt>本文</dt>
+        <dd><pre>{{issue.text}}</pre></dd><br>
+        {% if issue.is_votable %}
+        <dt>採決項目</dt>
+        <dd><pre>{{issue.vote_content}}</pre></dd>
+        {% endif %}
+    </dl>
+    {% if notes %}
+    <h2>議事録</h2>
+    <dl class="dl-horizontal">
+        {% for note in notes %}
+        <dt>{{note.block.name}}</dt>
+        <dd><pre>{{note.text}}</pre></dd>
+        {% endfor %}
+    </dl>
+    {% endif %}
+{% endblock %}

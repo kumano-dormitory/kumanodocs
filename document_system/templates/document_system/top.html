@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %} 資料システム {% endblock %}
+
+{% block content %}
+<h1 class="page-header">資料システム</h1>
+
+    <h2>資料の投稿</h2>
+    
+        <div class="btn-group btn-group-justified">
+            <a href="{% url 'document_system:post_normal_issue' %}" class="btn btn-default {% if not Meeting.exists_normal %}disabled{% endif %}">
+                <b>通常資料</b><br>
+                普通に資料を出す
+            </a>
+            <a href="{% url 'document_system:post_bring_issue' %}" class="btn btn-default {% if not Meeting.exists_bring %}disabled{% endif %}">
+                <b>持込資料</b><br>
+                資料委員会に直接持ち込む
+            </a>
+            <a href="{% url 'document_system:post_append_issue' %}" class="btn btn-default {% if not Meeting.exists_append %}disabled{% endif %}">
+                <b>追加資料</b><br>
+                資料委員会に間に合わなかった
+            </a>
+        </div>
+
+    {% if Meeting.exists_meeting_for_posting_note %}
+    <h2>議事録の投稿</h2>
+        <div class="btn-group btn-group-justified">
+            {% for block in Block.all_blocks %}
+            {% if block in Block.blocks_posted_notes %}
+            <a href="{% url 'document_system:edit_note' block_id=block.id %}" class="btn btn-success col-sm-1">
+                <b>{{ block.name }}</b><br>
+                提出済
+            </a>
+            {% else %}
+            <a href="{% url 'document_system:post_note' block_id=block.id %}" class="btn btn-danger col-sm-1">
+                <b>{{ block.name }}</b><br>
+                未提出
+            </a>
+            {% endif %}
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endblock %}

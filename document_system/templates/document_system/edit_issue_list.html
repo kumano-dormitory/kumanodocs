@@ -1,0 +1,8 @@
+{% extends "document_system/browse_issue_list.html" %}
+
+{% block title %}資料修正{% endblock %}
+
+{% block pageheader %}修正可能な資料一覧{% endblock %}
+
+{% block detail_link %}{% url 'document_system:edit_issue' issue_id=issue.id %}{% endblock %}
+
