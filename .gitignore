@@ -9,3 +9,5 @@ local_settings.py
 db.sqlite3
 migrations/
 secret_key.py
+nginx_users
+static/admin
