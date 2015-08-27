@@ -8,6 +8,7 @@
 
 ```
 $ pip install -r freeze.txt
+$ mv secret_key.py kumanodocs/
 $ ./manage.py syncdb  # add super user
 ```
 
