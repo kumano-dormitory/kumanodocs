@@ -5,6 +5,10 @@ from django.views.generic import ListView,DetailView
 from django.views.generic.edit import FormView, UpdateView
 from document_system.models import Meeting, Issue, Block, Note, IssueType
 from document_system.forms import NormalIssueForm,BringIssueForm,AppendIssueForm,EditIssueForm,PostNoteForm,EditNoteForm
+
+from django.template.loader import render_to_string
+from django.http import HttpResponse
+
 import hashlib
 
 def top(request):
@@ -144,3 +148,41 @@ def edit_note(request, block_id=None):
                                 ,'form':form
                                 },
                                 context_instance=RequestContext(request))
+
+def pdf_html(request, meeting_id=None):
+    meeting = Meeting.objects.get(id__exact=meeting_id)
+    issues  = Issue.objects.filter(meeting__exact=meeting).order_by('issue_order')
+    
+    import pipes
+
+    html_string = render_to_string(
+        'pdf/issues.html',
+        {'meeting':meeting,
+         'issues' :issues,},
+        context_instance=RequestContext(request))
+    
+    t = pipes.Template()
+    t.append('wkhtmltopdf --page-size B5 --encoding utf-8 --footer-center "[page]" --margin-top 0.5in --margin-right 0.5in --margin-bottom 0.5in --margin-left 0.5in - -','--')
+
+    with t.open('pipefile','w') as f:
+        f.write(html_string)
+
+    with open('pipefile','r') as f:
+        response = HttpResponse(f,content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename=meeting.pdf'
+        return response
+    
+    """
+    options={
+        'page-size':'B5',
+        'encoding' :'utf-8',
+        'footer-center':'[page]/[topage]',
+        'margin-top': '0.5in',
+        'margin-right': '0.5in',
+        'margin-bottom': '0.5in',
+        'margin-left': '0.5in',
+    }
+    """
+    
+    #response = HttpResponse(pdf_buf,content_type='application/pdf')
+    return response
