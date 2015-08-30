@@ -85,6 +85,9 @@ class Issue(models.Model):
 
     def get_qualified_title(self):
         return "【" + "・".join([t.name for t in self.issue_types.all()]) + "】" + self.title
+    
+    def get_order_qualified_title(self):
+        return "【" + str(self.issue_order) + "】" + self.title + "【" + "・".join([t.name for t in self.issue_types.all()]) + "】"
 
     def is_votable(self):
         return IssueType.objects.get(name__exact="採決") in self.issue_types.all()
