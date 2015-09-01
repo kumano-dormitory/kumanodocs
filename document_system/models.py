@@ -2,6 +2,7 @@
 
 from django.db import models
 from datetime import date, datetime, time, timedelta
+from django.db.models import Q
 
 # Create your models here.
 
@@ -36,12 +37,12 @@ class Meeting(models.Model):
 
     @classmethod
     def append_meeting_queryset(cls):
-        if datetime.now().time() >= time(hour=22,minute=30) and cls.objects.filter(meeting_date=(date.today() + timedelta(days=2))).exists():
-            return cls.objects.filter(meeting_date__exact=(date.today() + timedelta(days=2)))
-        elif cls.objects.filter(meeting_date=(date.today() + timedelta(days=1))).exists():
-            return cls.objects.filter(meeting_date__exact=(date.today() + timedelta(days=1)))
-        elif datetime.now().time() <= time(hour=22) and cls.objects.filter(meeting_date=(date.today())).exists():
+        if datetime.now().time() <= time(hour=12):
             return cls.objects.filter(meeting_date__exact=(date.today()))
+        elif time(hour=12) < datetime.now().time() and datetime.now().time() <= time(hour=22):
+            return cls.objects.filter(Q(meeting_date__exact=(date.today())) | Q(meeting_date__exact=(date.today() + timedelta(days=1))))
+        elif time(hour=22) < datetime.now().time():
+            return cls.objects.filter(meeting_date__exact=(date.today() + timedelta(days=1)))
         else :
             return cls.objects.none()
     
@@ -61,6 +62,13 @@ class Meeting(models.Model):
     @classmethod
     def exists_meeting_for_posting_note(cls):
         return cls.posting_note_meeting_queryset().exists()
+    
+    @classmethod
+    def rearrange_issues_meeting_queryset(cls):
+        if datetime.now().time() < time(hour=12):
+            return cls.objects.filter(meeting_date__gte=(date.today() + timedelta(days=1)))
+        else :
+            return cls.objects.filter(meeting_date__gte=(date.today() + timedelta(days=2)))
 
 class IssueType(models.Model):
     '''議案の種類'''
@@ -84,10 +92,10 @@ class Issue(models.Model):
         return self.title
 
     def get_qualified_title(self):
-        return "【" + "・".join([t.name for t in self.issue_types.all()]) + "】" + self.title
-    
-    def get_order_qualified_title(self):
-        return "【" + str(self.issue_order) + "】" + self.title + "【" + "・".join([t.name for t in self.issue_types.all()]) + "】"
+        return "【" + str(self.issue_order) + "】" + self.title + "【" + "・".join([t.name for t in self.issue_types.all()]) + "】" 
+
+    def get_title_with_types(self):
+        return self.title + "【" + "・".join([t.name for t in self.issue_types.all()]) + "】" 
 
     def is_votable(self):
         return IssueType.objects.get(name__exact="採決") in self.issue_types.all()

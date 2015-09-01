@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block extrahead %}
+<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+
+<!-- 並び替えを表現する -->
+<script type="text/javascript">
+$(function(){
+    $(".issues_sortable").sortable();
+    $(".issues_sortable").disableSelection();
+});
+</script>
+<style type="text/css">
+.issues_sortable {
+    list-style-type: none;
+    margin:0;
+    padding:0;
+}
+.issues_sortable li {
+    margin: 0 5px 5px 5px;
+    padding:0.4em;
+    font-size; 15px;
+    font-weight: bold;
+    cursor: move;
+}
+</style>
+
+<!-- 順番をform送信 -->
+<script type="text/javascript">
+function post_issue_order(){
+    $(function(){   
+        var button = document.getElementById("form_submit_button");
+        button.innerHTML = "<span class='glyphicon glyphicon-refresh glyphicon-refresh-animate'></span>  This may take a while.";
+        button.disabled = "disabled";
+
+        var issue_id_list = $(".issues_sortable").sortable("toArray"); // ["issue_3", "issue_8", ...]
+        var form = $('<form/>',{action:"{% url 'document_system:download_document_detail' meeting_id=meeting_id %}",method:'POST'});
+        for(var i=0; i < issue_id_list.length; i++){
+            form.append($('<input/>',{type:'hidden',name:issue_id_list[i],value:i+1}));
+        }
+        form.append("{% csrf_token %}");
+        form.appendTo(document.body);
+        form.submit();
+    });
+};
+</script>
+
+<!-- PDFローディング時のアニメーション -->
+<style type="text/css">
+.glyphicon-refresh-animate {
+    -animation: spin .7s infinite linear;
+    -webkit-animation: spin2 .7s infinite linear;
+}
+
+@-webkit-keyframes spin2 {
+    from { -webkit-transform: rotate(0deg);}
+    to { -webkit-transform: rotate(360deg);}
+}
+
+@keyframes spin {
+    from { transform: scale(1) rotate(0deg);}
+    to { transform: scale(1) rotate(360deg);}
+}
+</style>
+
+{% endblock %}
+
+{% block content %}
+<h1 class="page-header">資料の順番を決定する</h1>
+<div class="col-md-8">
+    {% if issues %}
+    <b>ドラッグ＆ドロップで資料の順番を変えられます。</b>
+    <br /><br />
+    <ul class="issues_sortable">
+        {% for issue in issues %}
+        <li class="ui-state-default" id="issue_{{ issue.id }}"><span class="glyphicon glyphicon-move"></span>   {{ issue.get_title_with_types }}</li>
+        {% endfor %}
+    </ul>
+    <br />
+    <button id="form_submit_button" class="btn btn-primary" style="text-align:right;" onclick="post_issue_order()"><span class="glyphicon glyphicon-download-alt"></span>   資料の順番を確定してダウンロード</button><br />
+    {% else %}
+    投稿されている資料はありません。
+    {% endif %}
+
+</div>
+
+
+{% endblock %}

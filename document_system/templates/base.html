@@ -62,6 +62,9 @@
             <li>
                 <a href="{% url 'document_system:browse_issue_list' %}">資料・議事録の閲覧</a>
             </li>
+            <li>
+                <a href="{% url 'document_system:download_document_list' %}"><span class="glyphicon glyphicon-download-alt"></span></a>
+            </li>
         </ul>
     </nav>
     <div class="container">
@@ -69,6 +72,8 @@
             {{ content }}
         {% endblock %}
     </div>
+    <footer class="footer" style="padding-top:60px;">
+    </footer>
     <script src="{% static 'js/bootstrap.min.js' %}"></script>
 </body>
 </html>

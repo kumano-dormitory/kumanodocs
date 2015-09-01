@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}資料ダウンロード{% endblock %}
+
+{% block content %}
+    <h1 class="page-header">{% block pageheader %}ブロック会議一覧{% endblock %}</h1>
+    {% if meeting_list %}
+    <div class='list-group'>
+        {% for meeting in meeting_list %}
+        <a class='list-group-item' href="{% url 'document_system:download_document_detail' meeting_id=meeting.id %}">{{meeting.meeting_date}}</a>
+        {% endfor %}
+    </div>
+    {% else %}
+    ダウンロード可能な資料はありません
+    {% endif %}
+{% endblock %}

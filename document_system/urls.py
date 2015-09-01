@@ -17,4 +17,8 @@ urlpatterns = patterns('',
     url(r'^browse_issue/(?P<pk>\d+)/$', views.BrowseIssueDetailView.as_view(), name='browse_issue_detail'),
     
     url(r'^edit_note/(?P<block_id>\d+)/$',views.edit_note  , name='edit_note'),
+    
+    url(r'^download_document/$',views.DownloadDocumentListView.as_view() , name='download_document_list'),
+    url(r'^download_document/(?P<meeting_id>\d+)/$',views.download_document_detail,  name='download_document_detail'),
+    url(r'^download_document/get_document/(?P<meeting_id>\d+)/$',views.pdf_html, name='get_pdf'),
 )
