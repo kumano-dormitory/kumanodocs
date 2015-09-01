@@ -1,0 +1,34 @@
+\documentclass[b5j,10pt]{ltjsarticle}
+\usepackage{luatexja}
+\usepackage{luatexja-fontspec}
+\usepackage[ipaex]{luatexja-preset}
+\usepackage{listings}
+\usepackage{spverbatim}
+\usepackage{tocloft}
+\usepackage[top=5truemm,bottom=15truemm,left=5truemm,right=5truemm]{geometry}
+
+\lstset{
+breaklines=true
+}
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+
+\title{ {{meeting.meeting_date}} ブロック会議 }
+\date{}
+\author{}
+
+\begin{document}
+\maketitle
+\vspace{-10ex}
+\tableofcontents
+{% for issue in issues %}
+\section*{ {{ issue.get_qualified_title }} \\ \ \  \normalsize{ 文責：{{ issue.author }} } }
+\addcontentsline{toc}{section}{\protect\numberline{} {{ issue.get_qualified_title }} }%
+\begin{spverbatim}{{ issue.text }}
+{% if issue.is_votable %}
+
+採決項目：
+{{ issue.vote_content }} 
+{% endif %}\end{spverbatim}
+{% endfor %}
+
+\end{document}

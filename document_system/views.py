@@ -4,7 +4,7 @@ from django.template import RequestContext
 from django.views.generic import ListView,DetailView
 from django.views.generic.edit import FormView, UpdateView
 from document_system.models import Meeting, Issue, Block, Note, IssueType
-from document_system.forms import NormalIssueForm,BringIssueForm,AppendIssueForm,EditIssueForm,PostNoteForm,EditNoteForm
+from document_system.forms import NormalIssueForm,BringIssueForm,AppendIssueForm,EditIssueForm,PostNoteForm,EditNoteForm,IssueOrderForm
 
 from django.template.loader import render_to_string
 from django.http import HttpResponse
@@ -113,7 +113,6 @@ def post_note(request, block_id=None):
             return redirect('document_system:top')
             
     else:
-        meeting = Meeting.posting_note_meeting_queryset().get()
         form = PostNoteForm(initial={'block':int(block_id)})
     return render_to_response('document_system/post_note.html',
                                 {'Meeting':Meeting
@@ -149,40 +148,56 @@ def edit_note(request, block_id=None):
                                 },
                                 context_instance=RequestContext(request))
 
+class DownloadDocumentListView(ListView):
+    context_object_name = 'meeting_list'
+    template_name       = 'document_system/download_document_list.html'
+    queryset            = Meeting.rearrange_issues_meeting_queryset()
+
+    def get_context_data(self,**kwargs):
+        context = super(DownloadDocumentListView,self).get_context_data(**kwargs)
+        context['Meeting'] = Meeting
+        context['Block']   = Block
+        return context
+
+def download_document_detail(request, meeting_id=None):
+    if request.method == 'POST':
+        form = IssueOrderForm(request.POST,meeting_id=meeting_id)
+        if form.is_valid():
+            issues = Issue.objects.filter(meeting__id__exact=meeting_id)
+            for issue in issues:
+                issue.issue_order = form.cleaned_data['issue_'+str(issue.id)]
+                issue.save()
+            return redirect('document_system:get_pdf',meeting_id=meeting_id)
+    else:
+        form = IssueOrderForm(meeting_id=meeting_id)
+    
+    return render_to_response('document_system/download_document_detail.html',
+                                {'Meeting':Meeting
+                                ,'Block':Block
+                                ,'issues':Issue.objects.filter(meeting__id__exact=meeting_id).order_by('issue_order')
+                                ,'form':form
+                                ,'meeting_id':meeting_id
+                                },
+                                context_instance=RequestContext(request))
+    
+
 def pdf_html(request, meeting_id=None):
     meeting = Meeting.objects.get(id__exact=meeting_id)
     issues  = Issue.objects.filter(meeting__exact=meeting).order_by('issue_order')
     
-    import pipes
-
     html_string = render_to_string(
-        'pdf/issues.html',
+        'document_system/pdf/main.tex',
         {'meeting':meeting,
          'issues' :issues,},
         context_instance=RequestContext(request))
     
-    t = pipes.Template()
-    t.append('wkhtmltopdf --page-size B5 --encoding utf-8 --footer-center "[page]" --margin-top 0.5in --margin-right 0.5in --margin-bottom 0.5in --margin-left 0.5in - -','--')
-
-    with t.open('pipefile','w') as f:
+    with open("/tmp/kumanodocs_meeting." + str(meeting.id) + ".tex",'w') as f:
         f.write(html_string)
 
-    with open('pipefile','r') as f:
-        response = HttpResponse(f,content_type='application/pdf')
-        response['Content-Disposition'] = 'attachment; filename=meeting.pdf'
-        return response
+    import subprocess
+
+    subprocess.check_call(["lualatex","kumanodocs_meeting." + str(meeting.id) + ".tex",],cwd='/tmp')
+    subprocess.check_call(["lualatex","kumanodocs_meeting." + str(meeting.id) + ".tex",],cwd='/tmp')
     
-    """
-    options={
-        'page-size':'B5',
-        'encoding' :'utf-8',
-        'footer-center':'[page]/[topage]',
-        'margin-top': '0.5in',
-        'margin-right': '0.5in',
-        'margin-bottom': '0.5in',
-        'margin-left': '0.5in',
-    }
-    """
-    
-    #response = HttpResponse(pdf_buf,content_type='application/pdf')
-    return response
+    with open("/tmp/kumanodocs_meeting." + str(meeting.id) + ".pdf","rb") as f:
+        return HttpResponse(f.read(),content_type="application/pdf")

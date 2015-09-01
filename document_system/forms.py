@@ -136,3 +136,14 @@ class EditNoteForm(Form):
             return cleaned_data
         else:
             self.add_error('hashed_password',"パスワードが間違っています")
+
+class IssueOrderForm(Form):
+    def __init__(self,*args,**kwargs):
+        meeting_id = kwargs['meeting_id']
+        del kwargs['meeting_id']
+
+        super(IssueOrderForm,self).__init__(*args,**kwargs)
+        
+        issues = Issue.objects.filter(meeting__id__exact=meeting_id)
+        for issue in issues:
+            self.fields['issue_'+str(issue.id)] = forms.IntegerField(min_value=1,max_value=len(issues))
