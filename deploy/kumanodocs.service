@@ -3,7 +3,8 @@ Description=Kumano Dormitory Document System
 After=network.target
 
 [Service]
-ExecStart=/var/lib/kumanodocs/start.sh
+# path to start.sh
+ExecStart=/srv/kumanodocs/deploy/start.sh
 
 [Install]
 WantedBy=multi-user.target
