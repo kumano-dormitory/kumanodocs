@@ -100,6 +100,12 @@ class Issue(models.Model):
     def is_votable(self):
         return IssueType.objects.get(name__exact="採決") in self.issue_types.all()
 
+    def notes(self):
+        return Note.objects.filter(issue__exact=self).order_by('block__name')
+
+    def get_qualified_title_for_note(self):
+        return "【0 - " + str(self.issue_order) + "】" + self.title + "【" + "・".join([t.name for t in self.issue_types.all()]) + "】" 
+
 class Block(models.Model):
     '''ブロック'''
     name = models.TextField()
@@ -132,7 +138,7 @@ class Note(models.Model):
     '''議事録'''
     issue           = models.ForeignKey(Issue,verbose_name="議案")
     block           = models.ForeignKey(Block,verbose_name="ブロック")
-    text            = models.TextField()
+    text            = models.TextField(blank=True)
     hashed_password = models.TextField()
 
     class Meta(object):

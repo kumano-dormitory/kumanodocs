@@ -184,11 +184,14 @@ def download_document_detail(request, meeting_id=None):
 def pdf_html(request, meeting_id=None):
     meeting = Meeting.objects.get(id__exact=meeting_id)
     issues  = Issue.objects.filter(meeting__exact=meeting).order_by('issue_order')
+    prev_meeting = Meeting.objects.filter(meeting_date__lt=meeting.meeting_date).order_by('-meeting_date').first()
+    prev_issues = Issue.objects.filter(meeting__exact=prev_meeting)
     
     html_string = render_to_string(
         'document_system/pdf/main.tex',
         {'meeting':meeting,
-         'issues' :issues,},
+         'issues' :issues,
+         'previous_issues':prev_issues,},
         context_instance=RequestContext(request))
     
     with open("/tmp/kumanodocs_meeting." + str(meeting.id) + ".tex",'w') as f:

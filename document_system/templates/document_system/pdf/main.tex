@@ -20,6 +20,17 @@ breaklines=true
 \maketitle
 \vspace{-10ex}
 \tableofcontents
+
+\section*{【0】前回のブロック会議から}
+\addcontentsline{toc}{section}{\protect\numberline{} { 【0】前回のブロック会議から } }%
+{% for issue in previous_issues %}
+
+\begin{spverbatim}
+{{ issue.get_qualified_title_for_note }}{% for note in issue.notes %}
+{% if note.text != "" %}{{ note.block.name }} - {{ note.text }}{% endif %}{% endfor %}\end{spverbatim}
+
+{% endfor %}
+
 {% for issue in issues %}
 \section*{ {{ issue.get_qualified_title }} \\ \ \  \normalsize{ 文責：{{ issue.author }} } }
 \addcontentsline{toc}{section}{\protect\numberline{} {{ issue.get_qualified_title }} }%
