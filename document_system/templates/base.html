@@ -18,25 +18,26 @@
         <ul class="nav navbar-nav">
             {% if Meeting.exists_normal or Meeting.exists_bring or Meeting.exists_append %}
             <li class="dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">資料投稿 <span class="caret"></span></a>
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">投稿 <span class="caret"></span></a>
                 <ul class="dropdown-menu">
                     {% if Meeting.exists_normal %}
-                    <li><a href="{% url 'document_system:post_normal_issue' %}">普通資料</a></li>
+                    <li><a href="{% url 'document_system:post_normal_issue' %}">普通</a></li>
                     {% endif %}
                     {% if Meeting.exists_bring %}
-                    <li><a href="{% url 'document_system:post_bring_issue' %}">持込資料</a></li>
+                    <li><a href="{% url 'document_system:post_bring_issue' %}">持込</a></li>
                     {% endif %}
                     {% if Meeting.exists_append %}
-                    <li><a href="{% url 'document_system:post_append_issue' %}">追加資料</a></li>
+                    <li><a href="{% url 'document_system:post_append_issue' %}">追加</a></li>
                     {% endif %}
                 </ul>
             </li>
             {% endif %}
-            {% if Meeting.exists_meeting_for_posting_note %}
+            {% if Meeting.exists_meeting_for_posting_issue %}
             <li>
-                <a href="{% url 'document_system:edit_issue' %}">資料編集</a>
+                <a href="{% url 'document_system:edit_issue' %}">編集</a>
             </li>
             {% endif %}
+            <!--
             {% if Meeting.exists_meeting_for_posting_note %}
             <li class="dropdown">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">議事録投稿 <span class="caret"></span></a>
@@ -59,11 +60,28 @@
                 </ul>
             </li>
             {% endif %}
+            -->
             <li>
-                <a href="{% url 'document_system:browse_issue_list' %}">資料・議事録の閲覧</a>
+                <a href="{% url 'document_system:browse_issue_list' %}">閲覧</a>
+            </li>
+        </ul>
+        <ul class="nav navbar-nav navbar-right">
+            <li> 
+                <form class="navbar-form" role="search" action="{% url 'document_system:search_issue' %}" method="GET">
+                    <div class="input-group">
+                        <span class="input-group-addon" id="search-icon" ><span class="glyphicon glyphicon-search"></span></span>
+                        <input type="text" name="keywords" class="form-control" placeholder="Search" aria-describedby="search-icon" />
+                    </div>
+                </form>
             </li>
             <li>
                 <a href="{% url 'document_system:download_document_list' %}"><span class="glyphicon glyphicon-download-alt"></span></a>
+            </li>
+            <li>
+                <a href="{% url 'admin:index' %}"><span class="glyphicon glyphicon-cog"></span></a>
+            </li>
+            <li>
+                <div style="width:50px;"></div>
             </li>
         </ul>
     </nav>

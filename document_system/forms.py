@@ -147,3 +147,6 @@ class IssueOrderForm(Form):
         issues = Issue.objects.filter(meeting__id__exact=meeting_id)
         for issue in issues:
             self.fields['issue_'+str(issue.id)] = forms.IntegerField(min_value=1,max_value=len(issues))
+
+class SearchIssueForm(Form):
+    keywords = forms.CharField()

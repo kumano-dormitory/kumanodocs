@@ -4,7 +4,7 @@ from django.template import RequestContext
 from django.views.generic import ListView,DetailView
 from django.views.generic.edit import FormView, UpdateView
 from document_system.models import Meeting, Issue, Block, Note, IssueType
-from document_system.forms import NormalIssueForm,BringIssueForm,AppendIssueForm,EditIssueForm,PostNoteForm,EditNoteForm,IssueOrderForm
+from document_system.forms import NormalIssueForm,BringIssueForm,AppendIssueForm,EditIssueForm,PostNoteForm,EditNoteForm,IssueOrderForm,SearchIssueForm
 
 from django.template.loader import render_to_string
 from django.http import HttpResponse
@@ -64,7 +64,7 @@ class BrowseIssueListView(ListView):
     queryset            = Issue.objects.order_by('-meeting__meeting_date','issue_order')
 
     def get_context_data(self,**kwargs):
-        context = super(BrowseIssueListView,self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context['Meeting'] = Meeting
         context['Block']   = Block
         return context
@@ -80,6 +80,19 @@ class BrowseIssueDetailView(DetailView):
         context['Block']   = Block
         context['notes']   = Note.objects.filter(issue__exact=context['issue']).order_by('block')
         return context
+
+class SearchIssueListView(BrowseIssueListView):
+    template_name = 'document_system/search_issue_list.html'
+    
+    def get_queryset(self):
+        form = SearchIssueForm(self.request.GET)
+        if form.is_valid():
+            import re
+            from django.db.models import Q
+            queryset = Issue.objects.all()
+            for keyword in re.split(r' |　',form.cleaned_data["keywords"]):
+                queryset = queryset.filter(Q(title__icontains=keyword) | Q(author__icontains=keyword) | Q(text__icontains=keyword))
+            return queryset
 
 class EditIssueListView(ListView):
     meetings = Meeting.normal_meeting_queryset()
