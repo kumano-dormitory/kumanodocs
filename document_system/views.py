@@ -198,7 +198,7 @@ def pdf_html(request, meeting_id=None):
     meeting = Meeting.objects.get(id__exact=meeting_id)
     issues  = Issue.objects.filter(meeting__exact=meeting).order_by('issue_order')
     prev_meeting = Meeting.objects.filter(meeting_date__lt=meeting.meeting_date).order_by('-meeting_date').first()
-    prev_issues = Issue.objects.filter(meeting__exact=prev_meeting)
+    prev_issues = Issue.objects.filter(meeting__exact=prev_meeting).order_by('issue_order')
     
     html_string = render_to_string(
         'document_system/pdf/main.tex',
