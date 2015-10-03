@@ -74,7 +74,7 @@ function post_issue_order(){
     <br /><br />
     <ul class="issues_sortable">
         {% for issue in issues %}
-        <li class="ui-state-default" id="issue_{{ issue.id }}"><span class="glyphicon glyphicon-move"></span>   {{ issue.get_title_with_types }}</li>
+        <li class="ui-state-default" id="issue_{{ issue.id }}"><span class="glyphicon glyphicon-move"></span>   {{ issue.get_title_with_types }} ({{ issue.author }})</li>
         {% endfor %}
     </ul>
     <br />
