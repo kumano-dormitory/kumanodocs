@@ -32,7 +32,7 @@
                 </ul>
             </li>
             {% endif %}
-            {% if Meeting.exists_meeting_for_posting_issue %}
+            {% if Meeting.exists_normal %}
             <li>
                 <a href="{% url 'document_system:edit_issue' %}">編集</a>
             </li>
