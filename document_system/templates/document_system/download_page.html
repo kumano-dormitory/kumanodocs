@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %} ダウンロード {% endblock %}
+
+{% block content %}
+<h1 class="page-header">ダウンロード</h1>
+
+    <div class="btn-group btn-group-lg btn-group-justified">
+        <a href="{% url 'document_system:download_document_list' %}" class="btn btn-primary">
+            ブロック会議資料
+        </a>
+        <a href="{% url 'document_system:download_note_list' %}" class="btn btn-success">
+            報告会資料
+        </a>
+    </div>
+{% endblock %}

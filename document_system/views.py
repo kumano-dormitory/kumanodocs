@@ -172,6 +172,17 @@ class DownloadDocumentListView(ListView):
         context['Block']   = Block
         return context
 
+class DownloadNoteListView(ListView):
+    context_object_name = 'meeting_list'
+    template_name = 'document_system/download_note_list.html'
+    queryset      = Meeting.download_note_meeting_queryset()
+    
+    def get_context_data(self,**kwargs):
+        context = super(DownloadNoteListView,self).get_context_data(**kwargs)
+        context['Meeting'] = Meeting
+        context['Block']   = Block
+        return context
+
 def download_document_detail(request, meeting_id=None):
     if request.method == 'POST':
         form = IssueOrderForm(request.POST,meeting_id=meeting_id)
@@ -198,7 +209,7 @@ def pdf_html(request, meeting_id=None):
     meeting = Meeting.objects.get(id__exact=meeting_id)
     issues  = Issue.objects.filter(meeting__exact=meeting).order_by('issue_order')
     prev_meeting = Meeting.objects.filter(meeting_date__lt=meeting.meeting_date).order_by('-meeting_date').first()
-    prev_issues = Issue.objects.filter(meeting__exact=prev_meeting).order_by('issue_order')
+    prev_issues = [issue for issue in Issue.objects.filter(meeting__exact=prev_meeting).order_by('issue_order') if not all(map(lambda note: note.text == "", issue.notes()))]
     
     html_string = render_to_string(
         'document_system/pdf/main.tex',
@@ -216,4 +227,28 @@ def pdf_html(request, meeting_id=None):
     subprocess.check_call(["lualatex","kumanodocs_meeting." + str(meeting.id) + ".tex",],cwd='/tmp')
     
     with open("/tmp/kumanodocs_meeting." + str(meeting.id) + ".pdf","rb") as f:
-        return HttpResponse(f.read(),content_type="application/pdf")
+        response = HttpResponse(f.read(),content_type="application/pdf")
+        response['Content-Disposition'] = 'attachment; filename="' + str(meeting.meeting_date) + '.pdf"'
+        return response
+
+def note_pdf(request, meeting_id=None):
+    meeting = Meeting.objects.get(id__exact=meeting_id)
+    issues = [issue for issue in Issue.objects.filter(meeting__exact=meeting).order_by('issue_order') if not all(map(lambda note: note.text == "", issue.notes()))]
+    html_string = render_to_string(
+        'document_system/pdf/note.tex',
+        {'meeting':meeting,
+         'issues' :issues,},
+        context_instance=RequestContext(request))
+    
+    with open("/tmp/kumanodocs_meeting." + str(meeting.id) + "note.tex",'w') as f:
+        f.write(html_string)
+
+    import subprocess
+
+    subprocess.check_call(["lualatex","kumanodocs_meeting." + str(meeting.id) + "note.tex",],cwd='/tmp')
+    subprocess.check_call(["lualatex","kumanodocs_meeting." + str(meeting.id) + "note.tex",],cwd='/tmp')
+    
+    with open("/tmp/kumanodocs_meeting." + str(meeting.id) + "note.pdf","rb") as f:
+        response = HttpResponse(f.read(),content_type="application/pdf")
+        response['Content-Disposition'] = 'attachment; filename="' + str(meeting.meeting_date) + '(NOTE)' + '.pdf"'
+        return response

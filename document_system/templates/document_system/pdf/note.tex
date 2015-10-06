@@ -15,34 +15,20 @@ breaklines=true
 \setmainjfont[BoldFont=IPAexGothic]{IPAexMincho}
 \setsansjfont{IPAexGothic}
 
-\title{ {{meeting.meeting_date}} ブロック会議 }
+\title{ {{meeting.meeting_date}} ブロック会議報告会 }
 \date{}
 \author{}
 
 \begin{document}
 \maketitle
 \vspace{-10ex}
-\tableofcontents
 
-\section*{【0】前回のブロック会議から}
-\addcontentsline{toc}{section}{\protect\numberline{} { 【0】前回のブロック会議から } }%
-{% for issue in previous_issues %}
+{% for issue in issues %}
 
 \begin{spverbatim}
 {{ issue.get_qualified_title_for_note }}
 {% for note in issue.notes %}{% if note.text != "" %}{{ note.block.name }} - {{ note.text }}
 {% else %}{% endif %}{% endfor %}\end{spverbatim}
-{% endfor %}
-
-{% for issue in issues %}
-\section*{ {{ issue.get_qualified_title }} \\ \ \  \normalsize{ 文責：{{ issue.author }} } }
-\addcontentsline{toc}{section}{\protect\numberline{} {{ issue.get_qualified_title }} }%
-\begin{spverbatim}{{ issue.text }}
-{% if issue.is_votable %}
-
-採決項目：
-{{ issue.vote_content }} 
-{% endif %}\end{spverbatim}
 {% endfor %}
 
 \end{document}

@@ -70,6 +70,10 @@ class Meeting(models.Model):
         else :
             return cls.objects.filter(meeting_date__gte=(date.today() + timedelta(days=2)))
 
+    @classmethod
+    def download_note_meeting_queryset(cls):
+        return cls.objects.filter(meeting_date__range=(date.today() - timedelta(days=2),date.today() - timedelta(days=1)))
+
 class IssueType(models.Model):
     '''議案の種類'''
     name = models.TextField()

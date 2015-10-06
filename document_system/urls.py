@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 from django.conf.urls import patterns, url
 from document_system import views
+from django.views.generic import TemplateView
 
 urlpatterns = patterns('',
     url(r'^$', views.top, name='top'),
@@ -20,7 +21,12 @@ urlpatterns = patterns('',
     
     url(r'^edit_note/(?P<block_id>\d+)/$',views.edit_note  , name='edit_note'),
     
-    url(r'^download_document/$',views.DownloadDocumentListView.as_view() , name='download_document_list'),
-    url(r'^download_document/(?P<meeting_id>\d+)/$',views.download_document_detail,  name='download_document_detail'),
-    url(r'^download_document/get_document/(?P<meeting_id>\d+)/$',views.pdf_html, name='get_pdf'),
+    url(r'^download/$',TemplateView.as_view(template_name='document_system/download_page.html'), name='download_page'),
+
+    url(r'^download/document/$',views.DownloadDocumentListView.as_view() , name='download_document_list'),
+    url(r'^download/document/document/(?P<meeting_id>\d+)/$',views.download_document_detail,  name='download_document_detail'),
+    url(r'^download/document/get_document/(?P<meeting_id>\d+)/$',views.pdf_html, name='get_pdf'),
+
+    url(r'^download/note/get_note/$',views.DownloadNoteListView.as_view(), name='download_note_list'),
+    url(r'^download/note/get_note/(?P<meeting_id>\d+)/$',views.note_pdf, name='get_note_pdf'),
 )
