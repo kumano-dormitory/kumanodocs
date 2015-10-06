@@ -11,3 +11,4 @@ migrations/
 secret_key.py
 nginx_users
 static/admin
+venv

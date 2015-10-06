@@ -124,8 +124,8 @@ class EditNoteForm(Form):
 
         meeting = Meeting.posting_note_meeting_queryset().get()
 
-        for note in Note.objects.filter(issue__meeting__exact=meeting,block__id__exact=block_id):
-            self.fields['note_'+str(note.id)] = forms.CharField( widget=forms.Textarea, label=note.issue.title, required=False ,initial=note.text)
+        for note in Note.objects.filter(issue__meeting__exact=meeting,block__id__exact=block_id).order_by('issue__issue_order'):
+            self.fields['note_'+str(note.id)] = forms.CharField( widget=forms.Textarea, label=note.issue.get_qualified_title(), required=False ,initial=note.text)
     
     def clean(self):
         cleaned_data = super(EditNoteForm,self).clean()

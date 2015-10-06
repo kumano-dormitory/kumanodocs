@@ -92,7 +92,7 @@ class Issue(models.Model):
         return self.title
 
     def get_qualified_title(self):
-        return "【" + str(self.issue_order) + "】" + self.title + "【" + "・".join([t.name for t in self.issue_types.all()]) + "】" 
+        return "【" + (str(self.issue_order) if self.issue_order > 0 else "追加議案") + "】" + self.title + "【" + "・".join([t.name for t in self.issue_types.all()]) + "】" 
 
     def get_title_with_types(self):
         return self.title + "【" + "・".join([t.name for t in self.issue_types.all()]) + "】" 
