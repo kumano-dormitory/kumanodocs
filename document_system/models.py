@@ -104,7 +104,7 @@ class Issue(models.Model):
         return Note.objects.filter(issue__exact=self).order_by('block__name')
 
     def get_qualified_title_for_note(self):
-        return "【0 - " + str(self.issue_order) + "】" + self.title + "【" + "・".join([t.name for t in self.issue_types.all()]) + "】" 
+        return "【0 - " + (str(self.issue_order) if self.issue_order > 0 else "追加議案") + "】" + self.title + "【" + "・".join([t.name for t in self.issue_types.all()]) + "】" 
 
 class Block(models.Model):
     '''ブロック'''
