@@ -78,7 +78,7 @@ class BrowseIssueDetailView(DetailView):
         context = super(BrowseIssueDetailView,self).get_context_data(**kwargs)
         context['Meeting'] = Meeting
         context['Block']   = Block
-        context['notes']   = Note.objects.filter(issue__exact=context['issue']).order_by('block')
+        context['notes']   = [note for note in Note.objects.filter(issue__exact=context['issue']).order_by('block') if note.text != ""]
         return context
 
 class SearchIssueListView(BrowseIssueListView):
