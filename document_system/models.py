@@ -52,9 +52,9 @@ class Meeting(models.Model):
 
     @classmethod
     def posting_note_meeting_queryset(cls):
-        if datetime.now().time() >= time(hour=22):
+        if datetime.now().time() >= time(hour=18):
             return cls.objects.filter(meeting_date__exact=(date.today()))
-        elif datetime.now().time() <= time(hour=22):
+        elif datetime.now().time() <= time(hour=18):
             return cls.objects.filter(meeting_date__exact=(date.today() - timedelta(days=1)))
         else:
             return cls.objects.none()
