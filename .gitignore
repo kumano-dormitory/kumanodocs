@@ -11,6 +11,7 @@ migrations/
 secret_key.py
 nginx_users
 static/admin
+deploy/dropbox_token.py
 venv
 deploy/backup/
 deploy/dropbox_token.py
