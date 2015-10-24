@@ -2,6 +2,9 @@
 
 cd /srv/kumanodocs/
 SQL_BACKUP_PATH=deploy/backup
+if [ ! -e ${SQL_BACKUP_PATH}] ; then
+    mkdir ${SQL_BACKUP_PATH}
+fi
 if test "07" = $(date +"%d") -o "22" = $(date +"%d"); then
     SQL_SEED=${SQL_BACKUP_PATH}/kumanodocs-database-backup-seed-$(date +"%Y-%m-%d").sqlite3
     cp db.sqlite3 ${SQL_SEED}
