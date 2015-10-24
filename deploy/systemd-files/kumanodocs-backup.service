@@ -1,0 +1,9 @@
+[Unit]
+Description=Kumano Dormitory Document System Backup Task
+
+[Service]
+# path to start.sh
+ExecStart=/srv/kumanodocs/deploy/backup.sh
+
+[Install]
+WantedBy=multi-user.target

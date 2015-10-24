@@ -1,4 +1,4 @@
 #!/bin/sh
 
 cd /srv/kumanodocs
-gunicorn kumanodocs.wsgi:application -c deploy/gunicorn.conf.py
+gunicorn kumanodocs.wsgi:application -c deploy/config-files/gunicorn.conf.py
