@@ -1,10 +1,6 @@
 [Unit]
 Description=Kumano Dormitory Document System Backup Task Timer
 
-[Service]
-# path to start.sh
-ExecStart=/srv/kumanodocs/deploy/backup.sh
-
 [Timer]
 OnCalendar=weekly
 Persistent=true
