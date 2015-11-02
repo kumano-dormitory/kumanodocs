@@ -27,8 +27,8 @@ class IssueView(FormView):
         return context
     
     def form_valid(self, form):
-        form.save()
-        return redirect('document_system:top')
+        issue = form.save()
+        return redirect('document_system:browse_issue_detail',pk=issue.id)
 
 class NormalIssueView(IssueView):
     form_class    = NormalIssueForm
@@ -43,13 +43,13 @@ def edit_issue(request,issue_id=None):
     issue = Issue.objects.get(id__exact=issue_id)
 
     if not issue.meeting in list(Meeting.normal_meeting_queryset()):
-        return redirect('document_system:top')
+        return redirect('document_system:browse_issue_detail',pk=issue.id)
     
     if request.method == "POST":
         form = EditIssueForm(request.POST,instance=issue)
         if form.is_valid():
             form.save()
-            return redirect('document_system:top')
+            return redirect('document_system:browse_issue_detail',pk=issue.id)
     else:
         issue.hashed_password = ''
         form = EditIssueForm(instance=issue) 
