@@ -12,3 +12,4 @@ secret_key.py
 nginx_users
 static/admin
 venv
+dropbox_token.py
