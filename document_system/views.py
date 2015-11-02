@@ -3,8 +3,8 @@ from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
 from django.views.generic import ListView,DetailView
 from django.views.generic.edit import FormView, UpdateView
-from document_system.models import Meeting, Issue, Block, Note, IssueType
-from document_system.forms import NormalIssueForm,BringIssueForm,AppendIssueForm,EditIssueForm,PostNoteForm,EditNoteForm,IssueOrderForm,SearchIssueForm
+from document_system.models import Meeting, Issue, Block, Note, IssueType, Table
+from document_system.forms import NormalIssueForm,BringIssueForm,AppendIssueForm,EditIssueForm,PostNoteForm,EditNoteForm,TableForm,IssueOrderForm,SearchIssueForm
 
 from django.template.loader import render_to_string
 from django.http import HttpResponse
@@ -164,6 +164,46 @@ def edit_note(request, block_id=None):
                                 ,'form':form
                                 },
                                 context_instance=RequestContext(request))
+
+class PostTableView(FormView):
+    template_name = 'document_system/post_table.html'
+    form_class    = TableForm
+
+    def get_context_data(self,**kwargs):
+        context = super(PostTableView,self).get_context_data(**kwargs)
+        context['Meeting'] = Meeting
+        return context
+
+    def form_valid(self, form):
+        form.save()
+        return redirect('document_system:top')
+
+class EditTableView(UpdateView):
+    model = Table
+    template_name = 'document_system/edit_table.html'
+    form_class    = TableForm
+
+    def render_to_response(self,context, **response_kwargs):
+        if not self.object.issue in Issue.posting_table_issue_queryset():
+            return redirect('document_system:top')
+
+        return super(EditTableView,self).render_to_response(context, **response_kwargs)
+ 
+    def get_form_kwargs(self):
+        kwargs = super(EditTableView,self).get_form_kwargs()
+        table_object = kwargs['instance']
+        table_object.csv_text=''
+        kwargs['instance'] = table_object
+        return kwargs
+
+    def get_context_data(self,**kwargs):
+        context = super(EditTableView,self).get_context_data(**kwargs)
+        context['Meeting'] = Meeting
+        return context
+
+    def form_valid(self, form):
+        form.save()
+        return redirect('document_system:top')
 
 class DownloadDocumentListView(ListView):
     context_object_name = 'meeting_list'
