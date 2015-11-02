@@ -3,6 +3,8 @@
 from django.db import models
 from datetime import date, datetime, time, timedelta
 from django.db.models import Q
+import csv
+import itertools
 
 # Create your models here.
 
@@ -49,6 +51,10 @@ class Meeting(models.Model):
     @classmethod
     def exists_append(cls):
         return cls.append_meeting_queryset().exists()
+
+    @classmethod 
+    def posting_table_meeting_queryset(cls):
+        return itertools.chain(cls.normal_meeting_queryset(), cls.bring_meeting_queryset(), cls.append_meeting_queryset())
 
     @classmethod
     def posting_note_meeting_queryset(cls):
@@ -110,6 +116,13 @@ class Issue(models.Model):
     def get_qualified_title_for_note(self):
         return "【0 - " + (str(self.issue_order) if self.issue_order > 0 else "追加議案") + "】" + self.title + "【" + "・".join([t.name for t in self.issue_types.all()]) + "】" 
 
+    def tables(self):
+        return Table.objects.filter(issue=self)#.order_by('table_order')
+        
+    @classmethod
+    def posting_table_issue_queryset(cls):
+        return functools.reduce(lambda x,y:x.extend(y),map(lambda x:cls.objects.filter(meeting=x),Meeting.posting_table_meeting_queryset()))
+
 class Block(models.Model):
     '''ブロック'''
     name = models.TextField()
@@ -151,3 +164,15 @@ class Note(models.Model):
     def __str__(self):
         return self.block.name + " " + self.issue.title
 
+class Table(models.Model):
+    '''表'''
+    issue           = models.ForeignKey(Issue,verbose_name="議案")
+    caption         = models.TextField(verbose_name="表のタイトル")
+    csv_text        = models.TextField(verbose_name="表")
+    table_order     = models.IntegerField(verbose_name="表の順番",default=(-1))
+
+    def __str__(self):
+        return self.issue.title + "" + self.caption
+
+    def get_list(self):
+        return csv.reader(self.csv_text.split('\n'),delimiter = '\t')

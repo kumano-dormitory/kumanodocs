@@ -43,6 +43,22 @@ breaklines=true
 採決項目：
 {{ issue.vote_content }} 
 {% endif %}\end{spverbatim}
+{% if issue.tables %}
+  \begin{table}
+    {% for table in issue.tables %}
+    \begin{center}
+    \caption{ {{table.caption}} }
+    \begin{tabular}{ {% for row in table.get_list %}{% if forloop.first %}{% for column in row %}r{% endfor %}{% endif %}{% endfor %} }
+       \hline
+       {% for row in table.get_list %}
+          {% for column in row %}\spverb {{column}}{% if not forloop.last %} & {% endif %}{% endfor %} \\ \hline      
+          {% if forloop.first %} \hline {% endif %}      
+       {% endfor %}
+    \end{tabular}
+    \end{center}
+    {% endfor %}
+    \end{table}
+{% endif %}
 {% endfor %}
 
 \end{document}

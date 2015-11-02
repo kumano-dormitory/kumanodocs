@@ -1,7 +1,7 @@
 #-*- coding: utf-8 -*-
 import django.forms as forms
 from django.forms import ModelForm, CheckboxSelectMultiple, TextInput, Textarea, Form, HiddenInput
-from document_system.models import Issue, IssueType, Meeting, Note, Block
+from document_system.models import Issue, IssueType, Meeting, Note, Block, Table
 import hashlib
 
 class IssueForm(ModelForm):
@@ -136,6 +136,29 @@ class EditNoteForm(Form):
             return cleaned_data
         else:
             self.add_error('hashed_password',"パスワードが間違っています")
+
+class TableForm(ModelForm):
+    '''表のフォーム'''
+
+    hashed_password = forms.CharField(label="議案のパスワード")
+
+    def clean(self):
+        cleaned_data = super(TableForm, self).clean()
+        if cleaned_data.get('hashed_password') != None and hashlib.sha512( cleaned_data.get('hashed_password').encode('utf-8') ).hexdigest() == cleaned_data.get('issue').hashed_password:
+            return cleaned_data
+        else:
+            self.add_error('hashed_password',"パスワードが間違っています")
+        return cleaned_data
+
+    class Meta:
+        model = Table
+        fields = ('issue','hashed_password','caption','csv_text')
+        widgets = {
+            'issue':(),
+            'hashed_password':TextInput(),
+            'caption':TextInput(),
+            'csv_text':Textarea(attrs={'rows':'20'})
+        }
 
 class IssueOrderForm(Form):
     def __init__(self,*args,**kwargs):
