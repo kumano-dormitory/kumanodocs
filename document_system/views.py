@@ -40,14 +40,17 @@ class AppendIssueView(IssueView):
     form_class    = AppendIssueForm
 
 def edit_issue(request,issue_id=None):
+    issue = Issue.objects.get(id__exact=issue_id)
+
+    if not issue.meeting in list(Meeting.normal_meeting_queryset()):
+        return redirect('document_system:top')
+    
     if request.method == "POST":
-        issue = Issue.objects.get(id__exact=issue_id)
         form = EditIssueForm(request.POST,instance=issue)
         if form.is_valid():
             form.save()
             return redirect('document_system:top')
     else:
-        issue = Issue.objects.get(id__exact=issue_id)
         issue.hashed_password = ''
         form = EditIssueForm(instance=issue) 
     
