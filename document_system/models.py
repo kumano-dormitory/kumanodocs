@@ -5,6 +5,7 @@ from datetime import date, datetime, time, timedelta
 from django.db.models import Q
 import csv
 import itertools
+import functools
 
 # Create your models here.
 
@@ -176,3 +177,4 @@ class Table(models.Model):
 
     def get_list(self):
         return csv.reader(self.csv_text.split('\n'),delimiter = '\t')
+

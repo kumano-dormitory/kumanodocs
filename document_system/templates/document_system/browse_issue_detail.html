@@ -44,7 +44,7 @@ pre {
 	    <thead>
 	      <tr>
 		{% for column in row %}
-		<th><div class="text-right">{{column}}</div></th>
+		<th><div{% if not forloop.first %} class="text-right"{% endif %}>{{column}}</div></th>
 		{% endfor %}
 	      </tr>
 	    </thead>
@@ -52,7 +52,7 @@ pre {
 	      {% else %}
 	      <tr>
 		{% for column in row %}
-		<td><div class="text-right">{{column}}</div></td>
+		<td><div{% if not forloop.first %} class="text-right"{% endif %}>{{column}}</div></td>
 		{% endfor %}
 	      </tr>
 	      {% if forloop.last %}</tbody>{% endif %}

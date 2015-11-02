@@ -179,6 +179,12 @@ class EditTableView(UpdateView):
     template_name = 'document_system/edit_table.html'
     form_class    = TableForm
 
+    def render_to_response(self,context, **response_kwargs):
+        if not self.object.issue in Issue.posting_table_issue_queryset():
+            return redirect('document_system:top')
+
+        return super(EditTableView,self).render_to_response(context, **response_kwargs)
+ 
     def get_form_kwargs(self):
         kwargs = super(EditTableView,self).get_form_kwargs()
         table_object = kwargs['instance']

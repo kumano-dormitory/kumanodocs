@@ -141,6 +141,7 @@ class TableForm(ModelForm):
     '''表のフォーム'''
 
     hashed_password = forms.CharField(label="議案のパスワード")
+    issue = forms.ModelChoiceField(queryset=Issue.posting_table_issue_queryset(),label="議案")
 
     def clean(self):
         cleaned_data = super(TableForm, self).clean()
@@ -148,6 +149,8 @@ class TableForm(ModelForm):
             return cleaned_data
         else:
             self.add_error('hashed_password',"パスワードが間違っています")
+        if not cleaned_data.get('issue') in Issue.posting_table_issue_queryset():
+            self.add_error('issue',"この議案に対する表は投稿できません。")
         return cleaned_data
 
     class Meta:
