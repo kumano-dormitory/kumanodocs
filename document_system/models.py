@@ -74,6 +74,9 @@ class Meeting(models.Model):
     def download_note_meeting_queryset(cls):
         return cls.objects.filter(meeting_date__range=(date.today() - timedelta(days=2),date.today() - timedelta(days=1)))
 
+    class Meta:
+        verbose_name_plural = "ブロック会議の日程"
+
 class IssueType(models.Model):
     '''議案の種類'''
     name = models.TextField()
@@ -109,6 +112,9 @@ class Issue(models.Model):
 
     def get_qualified_title_for_note(self):
         return "【0 - " + (str(self.issue_order) if self.issue_order > 0 else "追加議案") + "】" + self.title + "【" + "・".join([t.name for t in self.issue_types.all()]) + "】" 
+    
+    class Meta:
+        verbose_name_plural = "ブロック会議の議案"
 
 class Block(models.Model):
     '''ブロック'''
@@ -150,4 +156,6 @@ class Note(models.Model):
 
     def __str__(self):
         return self.block.name + " " + self.issue.title
-
+    
+    class Meta:
+        verbose_name_plural = "ブロック会議の議事録"
