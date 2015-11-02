@@ -79,16 +79,9 @@ class AppendIssueForm(IssueForm):
             self.add_error('meeting',"追加資料としての締め切りを過ぎています")
 
 class EditIssueForm(NormalIssueForm):
-    def __init__(self,*args,**kwargs):
-        issue_id = kwargs['issue_id']
-        del kwargs['issue_id']
-
-        super(EditIssueForm,self).__init__(*args,**kwargs)
-        self.fields['id'] = forms.IntegerField( widget=HiddenInput, initial=issue_id )
-
     def clean(self):
         cleaned_data = super(EditIssueForm,self).clean()
-        if cleaned_data.get("hashed_password") == Issue.objects.get(id__exact=cleaned_data['id']).hashed_password:
+        if cleaned_data.get("hashed_password") == self.instance.hashed_password:
             return cleaned_data
         else:
             self.add_error('hashed_password','パスワードが間違っています')
