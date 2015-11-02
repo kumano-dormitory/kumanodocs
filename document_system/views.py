@@ -41,14 +41,15 @@ class AppendIssueView(IssueView):
 
 def edit_issue(request,issue_id=None):
     if request.method == "POST":
-        form = EditIssueForm(request.POST,issue_id=issue_id)
+        issue = Issue.objects.get(id__exact=issue_id)
+        form = EditIssueForm(request.POST,instance=issue)
         if form.is_valid():
             form.save()
             return redirect('document_system:top')
     else:
         issue = Issue.objects.get(id__exact=issue_id)
         issue.hashed_password = ''
-        form = EditIssueForm(instance=issue,issue_id=issue_id) 
+        form = EditIssueForm(instance=issue) 
     
     return render_to_response('document_system/post_issue.html',
                                 {'Meeting':Meeting
