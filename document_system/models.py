@@ -4,9 +4,7 @@ from django.db import models
 from datetime import date, datetime, time, timedelta
 from django.db.models import Q
 import csv
-import itertools
 import functools
-
 # Create your models here.
 
 class Meeting(models.Model):
@@ -55,7 +53,7 @@ class Meeting(models.Model):
 
     @classmethod 
     def posting_table_meeting_queryset(cls):
-        return itertools.chain(cls.normal_meeting_queryset(), cls.bring_meeting_queryset(), cls.append_meeting_queryset())
+        return cls.normal_meeting_queryset() or cls.bring_meeting_queryset() or cls.append_meeting_queryset()
 
     @classmethod
     def posting_note_meeting_queryset(cls):
@@ -128,7 +126,7 @@ class Issue(models.Model):
         
     @classmethod
     def posting_table_issue_queryset(cls):
-        return functools.reduce(lambda x,y:x.extend(y),map(lambda x:cls.objects.filter(meeting=x),Meeting.posting_table_meeting_queryset()))
+        return functools.reduce(lambda x,y:x or cls.objects.filter(meeting=y),Meeting.posting_table_meeting_queryset(),cls.objects.none())
 
 class Block(models.Model):
     '''ブロック'''
