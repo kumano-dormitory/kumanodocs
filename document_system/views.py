@@ -29,7 +29,7 @@ class IssueView(FormView):
     def form_valid(self, form):
         issue = form.save()
         if self.request.POST.get('table_addition'):
-            return redirect('document_system:post_table')
+            return redirect('document_system:post_table',issue_id=issue.id)
         return redirect('document_system:browse_issue_detail',pk=issue.id)
 
 class NormalIssueView(IssueView):
