@@ -21,6 +21,9 @@ urlpatterns = patterns('',
     
     url(r'^edit_note/(?P<block_id>\d+)/$',views.edit_note  , name='edit_note'),
     
+    url(r'^post_table/$', views.PostTableView.as_view(), name='post_table'),
+    url(r'^edit_table/(?P<pk>\d+)/$', views.EditTableView.as_view(), name='edit_table'),
+    
     url(r'^download/$',TemplateView.as_view(template_name='document_system/download_page.html'), name='download_page'),
 
     url(r'^download/document/$',views.DownloadDocumentListView.as_view() , name='download_document_list'),

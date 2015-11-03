@@ -33,6 +33,35 @@ pre {
         <dt>採決項目</dt>
         <dd><pre>{{issue.vote_content}}</pre></dd>
         {% endif %}
+        {% if issue.tables %}
+        <dt>表</dt>
+        <dd>
+	  {% for table in issue.tables %}
+	  <table class="table table-condensed">
+	    <caption>表{{forloop.counter}} - {{table.caption}}</caption>
+	    {% for row in table.get_list %}
+	    {% if forloop.first %}
+	    <thead>
+	      <tr>
+		{% for column in row %}
+		<th><div{% if not forloop.first %} class="text-right"{% endif %}>{{column}}</div></th>
+		{% endfor %}
+	      </tr>
+	    </thead>
+	    <tbody>
+	      {% else %}
+	      <tr>
+		{% for column in row %}
+		<td><div{% if not forloop.first %} class="text-right"{% endif %}>{{column}}</div></td>
+		{% endfor %}
+	      </tr>
+	      {% if forloop.last %}</tbody>{% endif %}
+	    {% endif %}
+	    {% endfor %}
+	  </table>
+	  {% endfor %}
+	</dd>
+        {% endif %}
     </dl>
     {% if notes %}
     <h2>議事録</h2>
@@ -44,3 +73,4 @@ pre {
     </dl>
     {% endif %}
 {% endblock %}
+n
