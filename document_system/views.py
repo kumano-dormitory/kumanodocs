@@ -2,10 +2,10 @@
 from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
 from django.views.generic import ListView,DetailView
-from django.views.generic.edit import FormView, UpdateView
+from django.views.generic.edit import FormView, UpdateView, CreateView
 from document_system.models import Meeting, Issue, Block, Note, IssueType, Table
 from document_system.forms import NormalIssueForm,BringIssueForm,AppendIssueForm,EditIssueForm,PostNoteForm,EditNoteForm,TableForm,IssueOrderForm,SearchIssueForm
-
+from django.core.urlresolvers import reverse
 from django.template.loader import render_to_string
 from django.http import HttpResponse
 
@@ -28,6 +28,8 @@ class IssueView(FormView):
     
     def form_valid(self, form):
         issue = form.save()
+        if self.request.POST.get('table_addition'):
+            return redirect('document_system:post_table')
         return redirect('document_system:browse_issue_detail',pk=issue.id)
 
 class NormalIssueView(IssueView):
@@ -49,6 +51,8 @@ def edit_issue(request,issue_id=None):
         form = EditIssueForm(request.POST,instance=issue)
         if form.is_valid():
             form.save()
+            if request.POST.get('table_addition'):
+                return redirect('document_system:post_table',issue_id=issue.id)
             return redirect('document_system:browse_issue_detail',pk=issue.id)
     else:
         issue.hashed_password = ''
@@ -58,6 +62,7 @@ def edit_issue(request,issue_id=None):
                                 {'Meeting':Meeting
                                 ,'Block':Block
                                 ,'form':form
+                                ,'tables':issue.tables
                                 },
                                 context_instance=RequestContext(request))
 
@@ -165,7 +170,8 @@ def edit_note(request, block_id=None):
                                 },
                                 context_instance=RequestContext(request))
 
-class PostTableView(FormView):
+class PostTableView(CreateView):
+    model = Table
     template_name = 'document_system/post_table.html'
     form_class    = TableForm
 
@@ -174,13 +180,17 @@ class PostTableView(FormView):
         context['Meeting'] = Meeting
         return context
 
-    def form_valid(self, form):
-        form.save()
-        return redirect('document_system:top')
+    def get_initial(self):
+        initial = super(PostTableView,self).get_initial()
+        initial['issue']=Issue.objects.get(pk=self.kwargs['issue_id'])
+        return initial
+
+    def get_success_url(self):
+        return reverse('document_system:browse_issue_detail',kwargs={"pk":self.object.issue.id})
 
 class EditTableView(UpdateView):
     model = Table
-    template_name = 'document_system/edit_table.html'
+    template_name = 'document_system/post_table.html'
     form_class    = TableForm
 
     def render_to_response(self,context, **response_kwargs):
@@ -188,22 +198,19 @@ class EditTableView(UpdateView):
             return redirect('document_system:top')
 
         return super(EditTableView,self).render_to_response(context, **response_kwargs)
- 
-    def get_form_kwargs(self):
-        kwargs = super(EditTableView,self).get_form_kwargs()
-        table_object = kwargs['instance']
-        table_object.csv_text=''
-        kwargs['instance'] = table_object
-        return kwargs
+
+    def get_initial(self):
+        initial = super(EditTableView,self).get_initial()
+        initial['csv_text']=""
+        return initial
 
     def get_context_data(self,**kwargs):
         context = super(EditTableView,self).get_context_data(**kwargs)
         context['Meeting'] = Meeting
         return context
 
-    def form_valid(self, form):
-        form.save()
-        return redirect('document_system:top')
+    def get_success_url(self):
+        return reverse('document_system:browse_issue_detail',kwargs={"pk":self.object.issue.id})
 
 class DownloadDocumentListView(ListView):
     context_object_name = 'meeting_list'

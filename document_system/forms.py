@@ -153,7 +153,7 @@ class TableForm(ModelForm):
             'issue':(),
             'hashed_password':TextInput(),
             'caption':TextInput(),
-            'csv_text':Textarea(attrs={'rows':'20'})
+            'csv_text':Textarea(attrs={'rows':'20','placeholder':'表示したい部分をExcelからコピペしてください。'})
         }
 
 class IssueOrderForm(Form):

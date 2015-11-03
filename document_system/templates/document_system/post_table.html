@@ -23,9 +23,6 @@
 
 {% block content %}
     <h3 class="page-header">表投稿</h3>
-
-    <p>使いたい表の部分をExcelから以下にコピペしてください。</p>
-    
     <form action="" method="POST" class="form-horizontal">{% csrf_token %}
         {{form|bootstrap_horizontal}}
         <div class="form-group">
