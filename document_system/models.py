@@ -77,7 +77,7 @@ class Meeting(models.Model):
 
     @classmethod
     def download_note_meeting_queryset(cls):
-        return cls.objects.filter(meeting_date__range=(date.today() - timedelta(days=2),date.today() - timedelta(days=1)))
+        return cls.objects.filter(meeting_date__exact=(date.today() - timedelta(days=1)))
 
     class Meta:
         verbose_name_plural = "ブロック会議の日程"
