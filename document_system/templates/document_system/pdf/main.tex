@@ -1,3 +1,4 @@
+{% autoescape off %}
 \documentclass[b5j,10pt]{ltjsarticle}
 \usepackage{luatexja}
 \usepackage{luatexja-fontspec}
@@ -9,7 +10,7 @@
 
 \lstset{
 breaklines=true
-}
+1;2802;0c}
 \renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
 
 \setmainjfont[BoldFont=IPAexGothic]{IPAexMincho}
@@ -42,13 +43,14 @@ breaklines=true
 
 採決項目：
 {{ issue.vote_content }} 
-{% endif %}\end{spverbatim}
-{% if issue.tables %}
-  \begin{table}
+{% endif %}\end{spverbatim}{% endfor %}
+{% for issue in issues %}
+    {% if issue.tables %}
     {% for table in issue.tables %}
+    \begin{table}[!ht]
     \begin{center}
     \caption{ {{table.caption}} }
-    \begin{tabular}{ {% for row in table.get_list %}{% if forloop.first %}{% for column in row %}{% if forloop.fist &}l{% else %}r{% endif %}{% endfor %}{% endif %}{% endfor %} }
+    \begin{tabular}{ {% for row in table.get_list %}{% if forloop.first %}{% for column in row %}{% if forloop.first %}l{% else %}|r{% endif %}{% endfor %}{% endif %}{% endfor %} }
        \hline
        {% for row in table.get_list %}
           {% for column in row %}\spverb {{column}}{% if not forloop.last %} & {% endif %}{% endfor %} \\ \hline      
@@ -56,9 +58,9 @@ breaklines=true
        {% endfor %}
     \end{tabular}
     \end{center}
-    {% endfor %}
     \end{table}
-{% endif %}
-{% endfor %}
+    {% endfor %}
+{% endif %}{% endfor %}
 
 \end{document}
+{% endautoescape %}
