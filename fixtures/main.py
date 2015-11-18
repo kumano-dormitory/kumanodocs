@@ -1,3 +1,5 @@
+# -*- coding:utf-8 -*-
+
 import pymysql
 import yaml
 import random
@@ -6,6 +8,12 @@ import hashlib
 import parse
 import sys
 import datetime
+
+"""
+1, mysqlのデータをまともなものに直す
+2, yamlに吐く
+3, db.sqlite3に追加
+"""
 
 def main():
     user = sys.argv[1]
@@ -16,6 +24,9 @@ def main():
                                 ,db='kumano_shiryo'
                                 ,charset='utf8mb4'
                                 ,cursorclass=pymysql.cursors.DictCursor)
+
+    date_id_offset = 15 # mysqlにおけるdateをdb.sqlite3に移動するとき、db.sqlite3におけるそのdateのidは(元のid+date_id_offset)となる
+    issue_id_offset = 105 # 上記と同様
     
     try:
         with connection.cursor() as cursor:
@@ -23,6 +34,8 @@ def main():
             
             # delete
             cursor.execute("DELETE FROM proposal where del_flg = 1")
+            cursor.execute("DELETE FROM proposal where title is NULL")
+            # テストデータなど
             for i in [17, 20, 27,1012,1016,]:
                 cursor.execute("DELETE FROM proposal where id = %s",(i,))
             connection.commit()
@@ -32,7 +45,8 @@ def main():
             res = cursor.fetchall()
             for row in res:
                 if "【】" in row["title"]:
-                    cursor.execute("UPDATE from proposal SET title = %s where id = %s",(row["title"].replace("【】",""),row["id"]))
+                    print(row["title"].replace("【】",""))
+                    cursor.execute("UPDATE proposal SET title = %s where id = %s",(row["title"].replace("【】",""),row["id"]))
             connection.commit()
             
             # append deleted date
@@ -52,7 +66,7 @@ def main():
             for item in result:
                 fixture = [{
                     "model":"document_system.Meeting",
-                    "pk":item["id"],
+                    "pk":int(item["id"])+date_id_offset,
                     "fields": {
                         "meeting_date":str(item["time"]),
                     }
@@ -67,11 +81,17 @@ def main():
                 "報告":1,
                 "議論":2,
                 "検討":2,
+                "特別決議案":2,
                 "議論：特別決議案":2,
+                "調査":2,
                 "採決":3,
                 "募集":4,
                 "委員募集":4,
                 "意見募集":4,
+                "議案":2,
+                "追加資料":2,
+                "案":2,
+                "総括":2,
             }
 
             sql = "SELECT id,title,main,user,date,num from proposal"
@@ -107,27 +127,31 @@ def main():
                         else :
                             break
                     if parser_result == None:
-                        raise NameError('HiThere')
+                        raise NameError('New Pattern')
                     else:
                         parsed_item["fixed"] = parser_result.fixed
                         parsed_item["title"] = parser_result["title"]
                 except:
+                    """
                     if item["title"] == None:
                         cursor.execute("DELETE FROM proposal where id = %s",item["id"])
                         connection.commit()
-                    elif item["title"] == "今後の日程":
+                    elif "【特別決議案】" in item["title"]:
+                        parsed_item["title"] = item["title"].replace("【特別決議案】","")
+                        parsed_item["fixed"] = ("議論",)
+                    """
+                    if item["title"] == "今後の日程":
                         parsed_item["title"] = item["title"]
                         parsed_item["fixed"] = ("周知",)
                     elif "方針" in item["title"] or "総括" in item["title"] or "決算" in item["title"]:
                         parsed_item["title"] = item["title"].replace("【総括】","").replace("[総括]","")
                         parsed_item["fixed"] = ("議論",)
-                    elif "【特別決議案】" in item["title"]:
-                        parsed_item["title"] = item["title"].replace("【特別決議案】","")
-                        parsed_item["fixed"] = ("議論",)
                     elif "お知らせ" in item["title"]:
                         parsed_item["title"] = item["title"]
                         parsed_item["fixed"] = ("周知",)
                     else:
+                        # めんどくさいので、どのパターンにも当てはまらない議案は、タイトルはそのままで、issue_typeは【周知・議論】とする
+                        """
                         print(item["main"])
                         print(item["title"])
                         print(item["id"])
@@ -140,13 +164,16 @@ def main():
                                 break
                         parsed_item["title"] = parser_result["title"]
                         parsed_item["fixed"] = parser_result.fixed
+                        """
+                        parsed_item["title"] = item["title"].replace("【】","")
+                        parsed_item["fixed"] = ["周知","議論"]
                         
-                issue_types = list(set([issue_type_dict[issue_type] for issue_type in parsed_item["fixed"]))
+                issue_types = list(set([issue_type_dict[issue_type] for issue_type in parsed_item["fixed"]]))
                 fixture = [{
                     "model":"document_system.Issue",
-                    "pk":pk,
+                    "pk":int(item["id"]) + issue_id_offset,
                     "fields":{
-                        "meeting":item["date"],
+                        "meeting":item["date"] + date_id_offset,
                         "title"  :parsed_item["title"],
                         "issue_types":issue_types,
                         "author" :item["user"],
@@ -156,7 +183,6 @@ def main():
                     }
                 }]
                 yaml.dump(fixture, f, encoding='utf8', allow_unicode=True)
-                pk += 1
     finally:
         connection.close()
         f.close()
