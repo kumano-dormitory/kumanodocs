@@ -14,4 +14,4 @@ static/admin
 venv
 deploy/backup/
 deploy/dropbox_token.py
-fixture.yaml
+document_system/fixtures/*.yaml

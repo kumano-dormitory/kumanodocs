@@ -80,6 +80,7 @@ class Meeting(models.Model):
 
     class Meta:
         verbose_name_plural = "ブロック会議の日程"
+        ordering = ('-meeting_date',)
 
 class IssueType(models.Model):
     '''議案の種類'''
@@ -117,8 +118,6 @@ class Issue(models.Model):
     def get_qualified_title_for_note(self):
         return "【0 - " + (str(self.issue_order) if self.issue_order > 0 else "追加議案") + "】" + self.title + "【" + "・".join([t.name for t in self.issue_types.all()]) + "】" 
     
-    class Meta:
-        verbose_name_plural = "ブロック会議の議案"
 
     def tables(self):
         return Table.objects.filter(issue=self)#.order_by('table_order')
@@ -126,7 +125,11 @@ class Issue(models.Model):
     @classmethod
     def posting_table_issue_queryset(cls):
         return cls.objects.filter(meeting__in = Meeting.posting_table_meeting_queryset())
-
+    
+    class Meta:
+        verbose_name_plural = "ブロック会議の議案"
+        ordering = ('-meeting__meeting_date','issue_order')
+    
 class Block(models.Model):
     '''ブロック'''
     name = models.TextField()

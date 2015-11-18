@@ -30,11 +30,11 @@ def main():
     
     try:
         with connection.cursor() as cursor:
-            f = open("./fixtures/fixture.yaml","a")
-            
             # delete
             cursor.execute("DELETE FROM proposal where del_flg = 1")
             cursor.execute("DELETE FROM proposal where title is NULL")
+            cursor.execute("DELETE FROM giziroku where block = 0")
+            #cursor.execute("DELETE FROM giziroku where del_flg = 1")
             # テストデータなど
             for i in [17, 20, 27,1012,1016,]:
                 cursor.execute("DELETE FROM proposal where id = %s",(i,))
@@ -45,7 +45,6 @@ def main():
             res = cursor.fetchall()
             for row in res:
                 if "【】" in row["title"]:
-                    print(row["title"].replace("【】",""))
                     cursor.execute("UPDATE proposal SET title = %s where id = %s",(row["title"].replace("【】",""),row["id"]))
             connection.commit()
             
@@ -55,24 +54,30 @@ def main():
             d = datetime.date(1980,1,1)
             dt = datetime.timedelta(days=1)
             for row in res:
-                cursor.execute("INSERT INTO date (id, time, proposal_locked, giziroku_locked) VALUES (%s, %s, 0, 0)",((row["date"] if row["date"] != 0 else 10),d))
+                cursor.execute("INSERT INTO date (id, time, proposal_locked, giziroku_locked) VALUES (%s, %s, 0, 0)",(row["date"] if row["date"] != 0 else 10,d))
                 d += dt
             connection.commit()
 
+            print("data validation success")
+            
             # meeting
             sql = "SELECT id,time FROM date"
             cursor.execute(sql)
             result = cursor.fetchall()
-            for item in result:
-                fixture = [{
-                    "model":"document_system.Meeting",
-                    "pk":int(item["id"])+date_id_offset,
-                    "fields": {
-                        "meeting_date":str(item["time"]),
-                    }
-                }]
-                yaml.dump(fixture, f, encoding='utf8', allow_unicode=True)
             
+            with open("./document_system/fixtures/meeting.yaml","a") as f:
+                for item in result:
+                    fixture = [{
+                        "model":"document_system.Meeting",
+                        "pk":int(item["id"])+date_id_offset,
+                        "fields": {
+                            "meeting_date":str(item["time"]),
+                        }
+                    }]
+                    yaml.dump(fixture, f, encoding='utf8', allow_unicode=True)
+            
+            print("successfully meeting.yaml generated")
+
             # issue
             issue_type_dict = {
                 "周知":1,
@@ -116,7 +121,6 @@ def main():
                 parse.compile("{title}（{}）"),
             ]
             
-            pk = 1
             for item in result:
                 parsed_item = {}
                 try:
@@ -132,14 +136,6 @@ def main():
                         parsed_item["fixed"] = parser_result.fixed
                         parsed_item["title"] = parser_result["title"]
                 except:
-                    """
-                    if item["title"] == None:
-                        cursor.execute("DELETE FROM proposal where id = %s",item["id"])
-                        connection.commit()
-                    elif "【特別決議案】" in item["title"]:
-                        parsed_item["title"] = item["title"].replace("【特別決議案】","")
-                        parsed_item["fixed"] = ("議論",)
-                    """
                     if item["title"] == "今後の日程":
                         parsed_item["title"] = item["title"]
                         parsed_item["fixed"] = ("周知",)
@@ -151,20 +147,6 @@ def main():
                         parsed_item["fixed"] = ("周知",)
                     else:
                         # めんどくさいので、どのパターンにも当てはまらない議案は、タイトルはそのままで、issue_typeは【周知・議論】とする
-                        """
-                        print(item["main"])
-                        print(item["title"])
-                        print(item["id"])
-                        new_title = input("new title:")
-                        parser_result = None
-                        for parser in parsers:
-                            if parser_result == None:
-                                parser_result = parser.parse(new_title)
-                            else :
-                                break
-                        parsed_item["title"] = parser_result["title"]
-                        parsed_item["fixed"] = parser_result.fixed
-                        """
                         parsed_item["title"] = item["title"].replace("【】","")
                         parsed_item["fixed"] = ["周知","議論"]
                         
@@ -173,20 +155,56 @@ def main():
                     "model":"document_system.Issue",
                     "pk":int(item["id"]) + issue_id_offset,
                     "fields":{
-                        "meeting":item["date"] + date_id_offset,
+                        "meeting":item["date"] + date_id_offset if item["date"] + date_id_offset != 15 else 25,
                         "title"  :parsed_item["title"],
                         "issue_types":issue_types,
                         "author" :item["user"],
                         "text"   :item["main"],
-                        "hashed_password":hashlib.sha512((''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))).encode("utf-8")).hexdigest(),
+                        "hashed_password":"",
                         "issue_order":item["num"] if item["num"] else -1,
                     }
                 }]
-                yaml.dump(fixture, f, encoding='utf8', allow_unicode=True)
+                with open("./document_system/fixtures/issue.yaml","a") as f:
+                    yaml.dump(fixture, f, encoding='utf8', allow_unicode=True)
+            
+            print("successfully issue.yaml generated")
+
+            # note
+            sql = "SELECT DISTINCT main,block,number,date FROM giziroku"
+            cursor.execute(sql)
+            result = cursor.fetchall()
+            
+            for item in result:
+                # item["number"] が整数である場合
+                if parse.parse("{:d}",item["number"]):
+                    num = item["number"]
+                # item["number"] が始まりに整数を含む場合(ex: "11】ほげほげ A101鈴木"など)
+                elif parse.search("{:d}】",item["number"]):
+                    num = parse.search("{:d}】",item["number"])[0]
+                # item["number"]にissue_orderの情報を含まない場合(ex: "追加資料２"など)
+                else :
+                    num = None
+                if num != None:
+                    cursor.execute("SELECT id FROM proposal WHERE date = %s AND num = %s",(item["date"],num))
+                    res = cursor.fetchone()
+                    if res != None:
+                        fixture = [{
+                            "model":"document_system.Note",
+                            "fields":{
+                                "issue":int(res["id"]) + 105,
+                                "block":item["block"],
+                                "text":item["main"],
+                                "hashed_password":"",
+                            },
+                        }]
+                        print("issue:%s, block:%s" % (res["id"],item["block"]))
+                        with open("./document_system/fixtures/note.yaml","a") as f:
+                            yaml.dump(fixture,f,encoding='utf8',allow_unicode=True)
+
+            print("successfully note.yaml generated")
+
     finally:
         connection.close()
-        f.close()
-
 
 if __name__ == "__main__":
     main()
