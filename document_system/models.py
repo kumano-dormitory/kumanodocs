@@ -186,3 +186,6 @@ class Table(models.Model):
 
     def get_list(self):
         return csv.reader(self.csv_text.split('\n'),delimiter = '\t')
+
+    class Meta:
+        verbose_name_plural = "表"

@@ -5,3 +5,4 @@ from document_system.models import Meeting, Issue, Note, Block, IssueType, Table
 admin.site.register(Meeting)
 admin.site.register(Issue)
 admin.site.register(Note)
+admin.site.register(Table)
