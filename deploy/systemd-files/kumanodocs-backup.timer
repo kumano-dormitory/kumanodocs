@@ -2,7 +2,7 @@
 Description=Kumano Dormitory Document System Backup Task Timer
 
 [Timer]
-OnCalendar=weekly
+OnCalendar=daily
 Persistent=true
 
 [Install]
