@@ -145,9 +145,12 @@ class Block(models.Model):
     def blocks_posted_notes(cls):
         if Meeting.posting_note_meeting_queryset().exists():
             meeting = Meeting.posting_note_meeting_queryset().get()
-            issue   = Issue.objects.filter(meeting__exact=meeting)[0]
-            notes   = Note.objects.filter(issue__exact=issue)
-            return [note.block for note in notes]
+            issue   = Issue.objects.filter(meeting__exact=meeting).first()
+            if issue == None:
+                return []
+            else:
+                notes = Note.objects.filter(issue__exact=issue)
+                return [note.block for note in notes]
         else:
             return []
 
