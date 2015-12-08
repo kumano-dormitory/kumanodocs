@@ -76,7 +76,7 @@ class Meeting(models.Model):
 
     @classmethod
     def download_note_meeting_queryset(cls):
-        return cls.objects.filter(meeting_date__lt=(date.today()))
+        return cls.objects.filter(meeting_date__lte=(date.today()))
 
     class Meta:
         verbose_name_plural = "ブロック会議の日程"
