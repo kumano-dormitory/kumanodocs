@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 
 from django.db import models
+from django.utils import html
 from datetime import date, datetime, time, timedelta
 from django.db.models import Q
 import csv
@@ -123,10 +124,12 @@ class Issue(models.Model):
 
     def get_qualified_title_for_note(self):
         return "【0 - " + (str(self.issue_order) if self.issue_order > 0 else "追加議案") + "】" + self.title + "【" + "・".join([t.name for t in self.issue_types.all()]) + "】" 
-    
 
     def tables(self):
         return Table.objects.filter(issue=self)#.order_by('table_order')
+
+    def tag_eliminated_text(self):
+        return html.strip_tags(self.text)
         
     @classmethod
     def posting_table_issue_queryset(cls):

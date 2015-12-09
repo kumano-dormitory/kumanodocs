@@ -10,7 +10,11 @@
         <dt><a href="{% block detail_link %}{% url 'document_system:browse_issue_detail' pk=issue.id %}{% endblock %}">{{issue.get_title_with_types}}</a></dt>
         <dd>
             <small>
+                {% if issue.meeting.is_migrated_from_old_system %}
+                {{issue.tag_eliminated_text|slice:"0:300"}}...<br>
+                {% else %}
                 {{issue.text|slice:"0:300"}}...<br>
+                {% endif %}
                 <b>{{issue.meeting.meeting_date}}: {{issue.author}}</b><br>
             </small>
         </dd><br>
