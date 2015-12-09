@@ -34,7 +34,7 @@ pre {
         {% else %}
         <dd><pre>{{issue.text}}</pre></dd><br>
         {% endif %}
-        {% if issue.is_votable %}
+        {% if issue.is_votable and not issue.meeting.is_migrated_from_old_system %}
         <dt>採決項目</dt>
         <dd><pre>{{issue.vote_content}}</pre></dd>
         {% endif %}
