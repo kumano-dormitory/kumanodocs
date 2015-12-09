@@ -16,7 +16,6 @@ pre {
 
 {% block content %}
     <h1 class="page-header">資料閲覧</h3>
-
     <h2>資料本文</h2>
     <dl class="dl-horizontal">
         <dt>日程</dt>
@@ -28,7 +27,13 @@ pre {
         <dt>文責者</dt>
         <dd>{{issue.author}}</dd><br>
         <dt>本文</dt>
+        {% if issue.meeting.is_migrated_from_old_system %}
+        {% autoescape off %}
+        <dd><pre style="white-space:normal">{{issue.text}}</pre></dd><br>
+        {% endautoescape %}
+        {% else %}
         <dd><pre>{{issue.text}}</pre></dd><br>
+        {% endif %}
         {% if issue.is_votable %}
         <dt>採決項目</dt>
         <dd><pre>{{issue.vote_content}}</pre></dd>
