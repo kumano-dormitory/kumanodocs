@@ -24,7 +24,7 @@
 {% block content %}
     <h3 class="page-header">表投稿</h3>
         ※投稿できるのは予算表と決算表だけです。<br>
-        また、一番上の行に項目名を入れてください。
+        また、表の一番上の行には項目名を入れてください（収入、支出、備考など）。
     <form action="" method="POST" class="form-horizontal">{% csrf_token %}
         {{form|bootstrap_horizontal}}
         <div class="form-group">
