@@ -6,6 +6,7 @@
 \usepackage{listings}
 \usepackage{spverbatim}
 \usepackage{tocloft}
+\usepackage{here}
 \usepackage[top=5truemm,bottom=15truemm,left=5truemm,right=5truemm]{geometry}
 
 \lstset{
@@ -47,13 +48,13 @@ breaklines=true
 {% for issue in issues %}
     {% if issue.tables %}
     {% for table in issue.tables %}
-    \begin{table}[!ht]
+    \begin{table}[H]
     \begin{center}
     \caption{ {{table.caption}} }
     \begin{tabular}{ {% for row in table.get_list %}{% if forloop.first %}{% for column in row %}{% if forloop.first %}l{% else %}|r{% endif %}{% endfor %}{% endif %}{% endfor %} }
        \hline
        {% for row in table.get_list %}
-          {% for column in row %}\spverb {{column}}{% if not forloop.last %} & {% endif %}{% endfor %} \\ \hline      
+          {% for column in row %}\spverb {{column}} {% if not forloop.last %} & {% endif %}{% endfor %} \\ \hline      
           {% if forloop.first %} \hline {% endif %}      
        {% endfor %}
     \end{tabular}
