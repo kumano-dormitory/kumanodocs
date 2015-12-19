@@ -16,7 +16,7 @@ class Meeting(models.Model):
     
     @classmethod
     def normal_meeting_queryset(cls):
-        if datetime.now().time() >= time(hour=12):
+        if datetime.now().time() >= time(hour=21):
             return cls.objects.filter(meeting_date__gte=(date.today() + timedelta(days=3)))
         else :
             return cls.objects.filter(meeting_date__gte=(date.today() + timedelta(days=2)))
@@ -25,17 +25,6 @@ class Meeting(models.Model):
     def exists_normal(cls):
         return cls.normal_meeting_queryset().exists()
     
-    @classmethod
-    def bring_meeting_queryset(cls):
-        if time(hour=12) <= datetime.now().time() and datetime.now().time() <= time(hour=22,minute=30):
-            return cls.objects.filter(meeting_date__exact=(date.today() + timedelta(days=2)))
-        else :
-            return cls.objects.none()
-    
-    @classmethod
-    def exists_bring(cls):
-        return cls.bring_meeting_queryset().exists()
-
     @classmethod
     def append_meeting_queryset(cls):
         if datetime.now().time() <= time(hour=12):
@@ -53,7 +42,7 @@ class Meeting(models.Model):
 
     @classmethod 
     def posting_table_meeting_queryset(cls):
-        return cls.normal_meeting_queryset() or cls.bring_meeting_queryset() or cls.append_meeting_queryset()
+        return cls.normal_meeting_queryset() or cls.append_meeting_queryset()
 
     @classmethod
     def posting_note_meeting_queryset(cls):

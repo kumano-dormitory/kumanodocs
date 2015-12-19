@@ -12,10 +12,6 @@
                 <b>通常資料</b><br>
                 普通に資料を出す
             </a>
-            <a href="{% url 'document_system:post_bring_issue' %}" class="btn btn-default {% if not Meeting.exists_bring %}disabled{% endif %}">
-                <b>持込資料</b><br>
-                資料委員会に直接持ち込む
-            </a>
             <a href="{% url 'document_system:post_append_issue' %}" class="btn btn-default {% if not Meeting.exists_append %}disabled{% endif %}">
                 <b>追加資料</b><br>
                 資料委員会に間に合わなかった
@@ -49,13 +45,6 @@
                 <dd>
                     <ul>
                         <li>ブロック会議の前々日の12時（正午）が締め切り。</li>
-                        <li>資料委員会が印刷する。</li>
-                    </ul>
-                </dd>
-            <dt>持込資料</dt>
-                <dd>
-                    <ul>
-                        <li>ブロック会議の前々日の22時が締め切り。</li>
                         <li>資料委員会が印刷する。</li>
                     </ul>
                 </dd>

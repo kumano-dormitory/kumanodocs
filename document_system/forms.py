@@ -52,19 +52,6 @@ class NormalIssueForm(IssueForm):
         else:
             self.add_error('meeting',"普通資料としての締め切りを過ぎています")
 
-class BringIssueForm(IssueForm):
-    def __init__(self,*args,**kwargs):
-        super(BringIssueForm,self).__init__(*args,**kwargs)
-        self.fields['meeting'].queryset = Meeting.bring_meeting_queryset()
-    
-    def clean(self):
-        cleaned_data = super(BringIssueForm,self).clean()
-
-        if cleaned_data.get('meeting') in list(Meeting.bring_meeting_queryset()):
-            return cleaned_data
-        else:
-            self.add_error('meeting',"持込資料としての締め切りを過ぎています")
-
 class AppendIssueForm(IssueForm):
     def __init__(self,*args,**kwargs):
         super(AppendIssueForm,self).__init__(*args,**kwargs)

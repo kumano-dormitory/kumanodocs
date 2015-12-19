@@ -4,7 +4,7 @@ from django.template import RequestContext
 from django.views.generic import ListView,DetailView
 from django.views.generic.edit import FormView, UpdateView, CreateView
 from document_system.models import Meeting, Issue, Block, Note, IssueType, Table
-from document_system.forms import NormalIssueForm,BringIssueForm,AppendIssueForm,EditIssueForm,PostNoteForm,EditNoteForm,TableForm,IssueOrderForm,SearchIssueForm
+from document_system.forms import NormalIssueForm,AppendIssueForm,EditIssueForm,PostNoteForm,EditNoteForm,TableForm,IssueOrderForm,SearchIssueForm
 from django.core.urlresolvers import reverse
 from django.template.loader import render_to_string
 from django.http import HttpResponse
@@ -34,9 +34,6 @@ class IssueView(FormView):
 
 class NormalIssueView(IssueView):
     form_class    = NormalIssueForm
-
-class BringIssueView(IssueView):
-    form_class    = BringIssueForm
 
 class AppendIssueView(IssueView):
     form_class    = AppendIssueForm

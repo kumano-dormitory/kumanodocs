@@ -7,7 +7,6 @@ urlpatterns = patterns('',
     url(r'^$', views.top, name='top'),
 
     url(r'^post_issue/normal$', views.NormalIssueView.as_view(), name='post_normal_issue'),
-    url(r'^post_issue/bring$', views.BringIssueView.as_view(), name='post_bring_issue'),
     url(r'^post_issue/append$', views.AppendIssueView.as_view(), name='post_append_issue'),
     url(r'^edit_issue/$'  , views.EditIssueListView.as_view()   , name='edit_issue'),
     url(r'^edit_issue/(?P<issue_id>\d+)/$',views.edit_issue, name='edit_issue'),
