@@ -73,6 +73,26 @@ class EditIssueForm(NormalIssueForm):
         else:
             self.add_error('hashed_password','パスワードが間違っています')
 
+class DeleteIssueForm(Form):
+    issue_id        = forms.IntegerField(widget=forms.HiddenInput())
+    hashed_password = forms.CharField(label="パスワード")
+
+    def __init__(self,*args,**kwargs):
+        if 'issue_id' in kwargs:
+            issue_id = kwargs['issue_id']
+            del kwargs['issue_id']
+        super(DeleteIssueForm,self).__init__(*args,**kwargs)
+        if "issue_id" in locals():
+            self.fields['issue_id'].initial = issue_id
+
+    def clean(self):
+        cleaned_data = super(Form,self).clean()
+        
+        if Issue.objects.get(id__exact=cleaned_data.get('issue_id')).hashed_password == hashlib.sha512(cleaned_data.get('hashed_password').encode('utf-8')).hexdigest():
+            return cleaned_data
+        else:
+            self.add_error('hashed_password','パスワードが間違っています')
+
 class PostNoteForm(Form):
     block = forms.IntegerField( widget=forms.HiddenInput )
     hashed_password = forms.CharField( label="パスワード" )

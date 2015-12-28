@@ -4,7 +4,7 @@ from django.template import RequestContext
 from django.views.generic import ListView,DetailView
 from django.views.generic.edit import FormView, UpdateView, CreateView
 from document_system.models import Meeting, Issue, Block, Note, IssueType, Table
-from document_system.forms import NormalIssueForm,AppendIssueForm,EditIssueForm,PostNoteForm,EditNoteForm,TableForm,IssueOrderForm,SearchIssueForm
+from document_system.forms import NormalIssueForm,AppendIssueForm,EditIssueForm,PostNoteForm,EditNoteForm,TableForm,IssueOrderForm,SearchIssueForm,DeleteIssueForm
 from django.core.urlresolvers import reverse
 from django.template.loader import render_to_string
 from django.http import HttpResponse
@@ -61,6 +61,27 @@ def edit_issue(request,issue_id=None):
                                 ,'form':form
                                 ,'tables':issue.tables
                                 },
+                                context_instance=RequestContext(request))
+
+def delete_issue(request, issue_id=None):
+    issue = Issue.objects.get(id__exact=issue_id)
+    
+    if not issue.meeting in list(Meeting.normal_meeting_queryset()):
+        return redirect('document_system:browse_issue_detail',pk=issue.id)
+
+    if request.method == "POST":
+        form = DeleteIssueForm(request.POST)
+        if form.is_valid():
+            issue.delete()
+            return redirect('document_system:top')
+    else:
+        form = DeleteIssueForm(issue_id=issue_id)
+
+    return render_to_response('document_system/delete_issue_detail.html',
+                                {'Meeting':Meeting
+                                ,'Block':Block
+                                ,'form':form
+                                ,'issue':issue},
                                 context_instance=RequestContext(request))
 
 class BrowseIssueListView(ListView):

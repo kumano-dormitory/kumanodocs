@@ -10,6 +10,7 @@ urlpatterns = patterns('',
     url(r'^post_issue/append$', views.AppendIssueView.as_view(), name='post_append_issue'),
     url(r'^edit_issue/$'  , views.EditIssueListView.as_view()   , name='edit_issue'),
     url(r'^edit_issue/(?P<issue_id>\d+)/$',views.edit_issue, name='edit_issue'),
+    url(r'^delete_issue/(?P<issue_id>\d+)/$',views.delete_issue, name='delete_issue'),
     
     url(r'^post_note/(?P<block_id>\d+)/$', views.post_note, name='post_note'), 
     

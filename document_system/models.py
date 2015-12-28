@@ -119,6 +119,9 @@ class Issue(models.Model):
 
     def tag_eliminated_text(self):
         return html.strip_tags(self.text)
+
+    def is_editable(self):
+        return (self.meeting in list(Meeting.normal_meeting_queryset()))
         
     @classmethod
     def posting_table_issue_queryset(cls):
