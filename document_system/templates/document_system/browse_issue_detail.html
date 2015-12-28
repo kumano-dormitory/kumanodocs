@@ -67,6 +67,12 @@ pre {
 	  {% endfor %}
 	</dd>
         {% endif %}
+        {% if issue.is_editable %}
+        <div class="col-sm-10 col-sm-offset-2">
+            <a href='{% url 'document_system:edit_issue'   issue_id=issue.id %}' class='btn btn-success' style='text-decoration:none'>編集</a>
+            <a href='{% url 'document_system:delete_issue' issue_id=issue.id %}' class='btn btn-danger'  style='text-decoration:none'>削除</a>
+        </div>
+        {% endif %}
     </dl>
     {% if notes %}
     <h2>議事録</h2>
@@ -78,4 +84,3 @@ pre {
     </dl>
     {% endif %}
 {% endblock %}
-n

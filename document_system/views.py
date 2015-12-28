@@ -121,20 +121,6 @@ class SearchIssueListView(BrowseIssueListView):
                 queryset = queryset.filter(Q(title__icontains=keyword) | Q(author__icontains=keyword) | Q(text__icontains=keyword))
             return queryset
 
-class EditIssueListView(ListView):
-    meetings = Meeting.normal_meeting_queryset()
-
-    context_object_name = 'issue_list'
-    template_name       = 'document_system/edit_issue_list.html'
-    pagenate_by         = 50
-    queryset            = Issue.objects.filter(meeting__in=meetings)
-    
-    def get_context_data(self,**kwargs):
-        context = super(EditIssueListView,self).get_context_data(**kwargs)
-        context['Meeting'] = Meeting
-        context['Block']   = Block
-        return context
-
 def post_note(request, block_id=None):
     if request.method == "POST":
         form = PostNoteForm(request.POST)
