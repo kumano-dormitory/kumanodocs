@@ -1,8 +1,5 @@
 {% autoescape off %}
-\documentclass[b5j,10pt]{ltjsarticle}
-\usepackage{luatexja}
-\usepackage{luatexja-fontspec}
-\usepackage[ipaex]{luatexja-preset}
+\documentclass[b5j,10pt]{ujarticle}
 \usepackage{listings}
 \usepackage{spverbatim}
 \usepackage{tocloft}
@@ -13,9 +10,6 @@
 breaklines=true
 1;2802;0c}
 \renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
-
-\setmainjfont[BoldFont=IPAexGothic]{IPAexMincho}
-\setsansjfont{IPAexGothic}
 
 \title{ {{meeting.meeting_date}} ブロック会議 }
 \date{}

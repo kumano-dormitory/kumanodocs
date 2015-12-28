@@ -258,52 +258,59 @@ def download_document_detail(request, meeting_id=None):
                                 ,'meeting_id':meeting_id
                                 },
                                 context_instance=RequestContext(request))
-    
 
-def pdf_html(request, meeting_id=None):
+def output_pdf(request,tex_string,meeting_id,document_type):
+    filename = '.'.join(["kumanodocs_meeting",meeting_id, document_type])
+    
+    with open("/tmp/" + filename + ".tex",'w') as f:
+        f.write(tex_string)
+
+    import subprocess
+    
+    try:
+        """
+        subprocess.check_output(["uplatex",filename + ".tex"],cwd='/tmp')
+        subprocess.check_output(["uplatex",filename + ".tex"],cwd='/tmp')
+        subprocess.check_output(["dvipdfmx","-f","",filename + ".dvi"],cwd="/tmp")
+        """
+        subprocess.check_output(['ptex2pdf', '-u', '-l', filename + '.tex'],cwd='/tmp')
+        subprocess.check_output(['ptex2pdf', '-u', '-l', filename + '.tex'],cwd='/tmp')
+    except subprocess.CalledProcessError as e:
+        return render_to_response('document_system/pdf_error.html',
+                                    {'Meeting':Meeting
+                                    ,'Block':Block
+                                    ,'error_output':e.output
+                                    },
+                                    context_instance=RequestContext(request))
+    
+    with open("/tmp/" + filename + ".pdf","rb") as f:
+        response = HttpResponse(f.read(),content_type="application/pdf")
+        response['Content-Disposition'] = 'attachment; filename="' + filename + '.pdf"'
+        return response
+
+
+def document_pdf(request, meeting_id=None):
     meeting = Meeting.objects.get(id__exact=meeting_id)
     issues  = Issue.objects.filter(meeting__exact=meeting).order_by('issue_order')
     prev_meeting = Meeting.objects.filter(meeting_date__lt=meeting.meeting_date).order_by('-meeting_date').first()
     prev_issues = [issue for issue in Issue.objects.filter(meeting__exact=prev_meeting).order_by('issue_order') if not all(map(lambda note: note.text == "", issue.notes()))]
     
-    html_string = render_to_string(
+    tex_string = render_to_string(
         'document_system/pdf/main.tex',
         {'meeting':meeting,
          'issues' :issues,
          'previous_issues':prev_issues,},
         context_instance=RequestContext(request))
     
-    with open("/tmp/kumanodocs_meeting." + str(meeting.id) + ".tex",'w') as f:
-        f.write(html_string)
-
-    import subprocess
-
-    subprocess.check_call(["lualatex","kumanodocs_meeting." + str(meeting.id) + ".tex",],cwd='/tmp')
-    subprocess.check_call(["lualatex","kumanodocs_meeting." + str(meeting.id) + ".tex",],cwd='/tmp')
-    
-    with open("/tmp/kumanodocs_meeting." + str(meeting.id) + ".pdf","rb") as f:
-        response = HttpResponse(f.read(),content_type="application/pdf")
-        response['Content-Disposition'] = 'attachment; filename="' + str(meeting.meeting_date) + '.pdf"'
-        return response
+    return output_pdf(request,tex_string,meeting_id,"document")
 
 def note_pdf(request, meeting_id=None):
     meeting = Meeting.objects.get(id__exact=meeting_id)
     issues = [issue for issue in Issue.objects.filter(meeting__exact=meeting).order_by('issue_order') if not all(map(lambda note: note.text == "", issue.notes()))]
-    html_string = render_to_string(
+    tex_string = render_to_string(
         'document_system/pdf/note.tex',
         {'meeting':meeting,
          'issues' :issues,},
         context_instance=RequestContext(request))
     
-    with open("/tmp/kumanodocs_meeting." + str(meeting.id) + "note.tex",'w') as f:
-        f.write(html_string)
-
-    import subprocess
-
-    subprocess.check_call(["lualatex","kumanodocs_meeting." + str(meeting.id) + "note.tex",],cwd='/tmp')
-    subprocess.check_call(["lualatex","kumanodocs_meeting." + str(meeting.id) + "note.tex",],cwd='/tmp')
-    
-    with open("/tmp/kumanodocs_meeting." + str(meeting.id) + "note.pdf","rb") as f:
-        response = HttpResponse(f.read(),content_type="application/pdf")
-        response['Content-Disposition'] = 'attachment; filename="' + str(meeting.meeting_date) + '(NOTE)' + '.pdf"'
-        return response
+    return output_pdf(request,tex_string,meeting_id,"note")

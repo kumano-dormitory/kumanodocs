@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block title %}PDF出力エラー{% endblock %}
+
+{% block content %}
+    <h2 class='page-header'>PDF出力エラー</h2>
+    PDFの出力時にエラーが発生しました。管理者に相談してください。
+    <pre>
+{{ error_output }}
+    </pre>
+{% endblock %}

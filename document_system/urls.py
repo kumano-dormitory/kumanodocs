@@ -27,7 +27,7 @@ urlpatterns = patterns('',
 
     url(r'^download/document/$',views.DownloadDocumentListView.as_view() , name='download_document_list'),
     url(r'^download/document/document/(?P<meeting_id>\d+)/$',views.download_document_detail,  name='download_document_detail'),
-    url(r'^download/document/get_document/(?P<meeting_id>\d+)/$',views.pdf_html, name='get_pdf'),
+    url(r'^download/document/get_document/(?P<meeting_id>\d+)/$',views.document_pdf, name='get_pdf'),
 
     url(r'^download/note/get_note/$',views.DownloadNoteListView.as_view(), name='download_note_list'),
     url(r'^download/note/get_note/(?P<meeting_id>\d+)/$',views.note_pdf, name='get_note_pdf'),
