@@ -17,9 +17,9 @@ class Meeting(models.Model):
     @classmethod
     def normal_meeting_queryset(cls):
         if datetime.now().time() >= time(hour=21):
-            return cls.objects.filter(meeting_date__gte=(date.today() + timedelta(days=3)))
+            return cls.objects.filter(meeting_date__gte=(date.today() + timedelta(days=3))).order_by('-meeting_date')
         else :
-            return cls.objects.filter(meeting_date__gte=(date.today() + timedelta(days=2)))
+            return cls.objects.filter(meeting_date__gte=(date.today() + timedelta(days=2))).order_by('-meeting_date')
 
     @classmethod
     def exists_normal(cls):
