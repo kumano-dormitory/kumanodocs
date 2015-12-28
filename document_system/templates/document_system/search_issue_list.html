@@ -1,5 +1,15 @@
-{% extends "document_system/browse_issue_list.html" %}
+{% extends "base.html" %}
 
 {% block title %}資料検索{% endblock %}
 
-{% block pageheader %}検索結果{% endblock %}
+{% block content %}
+    <h3 class="page-header">資料検索</h3>
+    {% if issue_list %}
+        {% include 'document_system/components/issue_list.html' %}
+        {% if is_paginated %}
+            {% include 'document_system/components/pagination.html' %}
+        {% endif %}
+    {% else %}
+        資料はありません
+    {% endif %}
+{% endblock %}

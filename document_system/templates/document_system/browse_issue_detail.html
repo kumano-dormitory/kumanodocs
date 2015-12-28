@@ -15,65 +15,14 @@ pre {
 {% endblock %}
 
 {% block content %}
-    <h1 class="page-header">資料閲覧</h3>
-    <h2>資料本文</h2>
-    <dl class="dl-horizontal">
-        <dt>日程</dt>
-        <dd>{{issue.meeting.meeting_date}}</dd><br>
-        <dt>資料の種類</dt>
-        <dd>{{issue.issue_types.all|join:"・"}}</dd><br>
-        <dt>タイトル</dt>
-        <dd>{{issue.title}}</dd><br>
-        <dt>文責者</dt>
-        <dd>{{issue.author}}</dd><br>
-        <dt>本文</dt>
-        {% if issue.meeting.is_migrated_from_old_system %}
-        {% autoescape off %}
-        <dd><pre style="white-space:normal">{{issue.text}}</pre></dd><br>
-        {% endautoescape %}
-        {% else %}
-        <dd><pre>{{issue.text}}</pre></dd><br>
-        {% endif %}
-        {% if issue.is_votable and not issue.meeting.is_migrated_from_old_system %}
-        <dt>採決項目</dt>
-        <dd><pre>{{issue.vote_content}}</pre></dd>
-        {% endif %}
-        {% if issue.tables %}
-        <dt>表</dt>
-        <dd>
-	  {% for table in issue.tables %}
-	  <table class="table table-condensed">
-	    <caption>表{{forloop.counter}} - {{table.caption}}</caption>
-	    {% for row in table.get_list %}
-	    {% if forloop.first %}
-	    <thead>
-	      <tr>
-		{% for column in row %}
-		<th><div{% if not forloop.first %} class="text-right"{% endif %}>{{column}}</div></th>
-		{% endfor %}
-	      </tr>
-	    </thead>
-	    <tbody>
-	      {% else %}
-	      <tr>
-		{% for column in row %}
-		<td><div{% if not forloop.first %} class="text-right"{% endif %}>{{column}}</div></td>
-		{% endfor %}
-	      </tr>
-	      {% if forloop.last %}</tbody>{% endif %}
-	    {% endif %}
-	    {% endfor %}
-	  </table>
-	  {% endfor %}
-	</dd>
-        {% endif %}
+    <h3 class="page-header">
+        資料閲覧
         {% if issue.is_editable %}
-        <div class="col-sm-10 col-sm-offset-2">
-            <a href='{% url 'document_system:edit_issue'   issue_id=issue.id %}' class='btn btn-success' style='text-decoration:none'>編集</a>
-            <a href='{% url 'document_system:delete_issue' issue_id=issue.id %}' class='btn btn-danger'  style='text-decoration:none'>削除</a>
-        </div>
+            <a href='{% url 'document_system:edit_issue' issue_id=issue.id %}' class='btn-xs btn-success' style='text-decoration:none'>編集</a>
+            <a href='{% url 'document_system:delete_issue' issue_id=issue.id %}' class='btn-xs btn-danger' style='text-decoration:none'>削除</a>
         {% endif %}
-    </dl>
+    </h3>
+    {% include 'document_system/components/issue.html' %}
     {% if notes %}
     <h2>議事録</h2>
     <dl class="dl-horizontal">

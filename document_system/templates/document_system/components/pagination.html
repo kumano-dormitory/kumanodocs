@@ -1,0 +1,19 @@
+<ul class="pagination">
+    {% if page_obj.has_previous %}
+        <li><a href="?page={{ page_obj.previous_page_number }}{% if search_keywords %}&keywords={{ search_keywords }}{% endif %}">&laquo;</a></li>
+    {% else %}
+        <li class="disabled"><a href="#">&laquo;</a></li>
+    {% endif %}
+    {% for linkpage in page_obj.paginator.page_range %}
+        {% ifequal linkpage page_obj.number %}
+        <li  class="active"><a href="#">{{ linkpage }}</a></li>
+        {% else %}
+        <li><a href="?page={{ linkpage }}{% if search_keywords %}&keywords={{ search_keywords }}{% endif %}">{{ linkpage }}</a></li>
+        {% endifequal %}
+    {% endfor %}
+    {% if page_obj.has_next %}
+        <li><a href="?page={{ page_obj.next_page_number }}{% if search_keywords %}&keywords={{ search_keywords }}{% endif %}">&raquo;</a></li>
+    {% else %}
+        <li class="disabled"><a href="#">&raquo;</a></li>
+    {% endif %}
+</ul>

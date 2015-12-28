@@ -121,6 +121,11 @@ class SearchIssueListView(BrowseIssueListView):
                 queryset = queryset.filter(Q(title__icontains=keyword) | Q(author__icontains=keyword) | Q(text__icontains=keyword))
             return queryset
 
+    def get_context_data(self,**kwargs):
+        context = super(SearchIssueListView,self).get_context_data(**kwargs)
+        context['search_keywords'] = self.request.GET['keywords']
+        return context
+    
 def post_note(request, block_id=None):
     if request.method == "POST":
         form = PostNoteForm(request.POST)
