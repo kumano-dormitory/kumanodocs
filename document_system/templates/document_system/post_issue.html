@@ -22,12 +22,13 @@
         {{form|bootstrap_horizontal}}
         <div class="form-group">
 	{% if tables %}
-	<div class="control-label col-sm-2 col-lg-2">表</div>
-	<div class=" col-sm-10 col-lg-10 ">
+	<dl class='dl-horizontal'>
+    <dt>表</dt>
+	<dd>
 	  {% for table in tables %}
 	  <table class="table table-condensed">
 	    <caption>表{{forloop.counter}} - {{table.caption}}
-	      <input type="button" class="btn-xs btn-primary" value="表{{forloop.counter}}を編集" onclick="location.href='{% url 'document_system:edit_table' pk=table.id %}'">
+	      <a class="btn-xs btn-success" href='{% url 'document_system:edit_table' pk=table.id %}' style='text-decoration:none'>表{{forloop.counter}}を編集</a>
 </caption>
 	    {% for row in table.get_list %}
 	    {% if forloop.first %}
@@ -51,6 +52,8 @@
 	  </table>
 	  {% endfor %}
 	  </div>
+      </dd>
+      </dl>
       {% endif %}
       <div class="form-group">
             <div class="col-sm-10 col-sm-offset-2">
