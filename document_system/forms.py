@@ -47,10 +47,9 @@ class NormalIssueForm(IssueForm):
     def clean(self):
         cleaned_data = super(NormalIssueForm,self).clean()
 
-        if cleaned_data.get('meeting') in list(Meeting.normal_meeting_queryset()):
-            return cleaned_data
-        else:
+        if not cleaned_data.get('meeting') in list(Meeting.normal_meeting_queryset()):
             self.add_error('meeting',"普通資料としての締め切りを過ぎています")
+        return cleaned_data
 
 class AppendIssueForm(IssueForm):
     def __init__(self,*args,**kwargs):
@@ -61,17 +60,15 @@ class AppendIssueForm(IssueForm):
         cleaned_data = super(AppendIssueForm,self).clean()
 
         if cleaned_data.get('meeting') in list(Meeting.append_meeting_queryset()):
-            return cleaned_data
-        else:
             self.add_error('meeting',"追加資料としての締め切りを過ぎています")
+        return cleaned_data
 
 class EditIssueForm(NormalIssueForm):
     def clean(self):
         cleaned_data = super(EditIssueForm,self).clean()
         if cleaned_data.get("hashed_password") == self.instance.hashed_password:
-            return cleaned_data
-        else:
             self.add_error('hashed_password','パスワードが間違っています')
+        return cleaned_data
 
 class DeleteIssueForm(Form):
     issue_id        = forms.IntegerField(widget=forms.HiddenInput())
@@ -87,9 +84,12 @@ class DeleteIssueForm(Form):
 
     def clean(self):
         cleaned_data = super(Form,self).clean()
-        
-        if Issue.objects.get(id__exact=cleaned_data.get('issue_id')).hashed_password != hashlib.sha512(cleaned_data.get('hashed_password').encode('utf-8')).hexdigest():
+        issue = Issue.objects.get(id__exact=cleaned_data.get('issue_id'))
+
+        if issue.hashed_password != hashlib.sha512(cleaned_data.get('hashed_password').encode('utf-8')).hexdigest():
             self.add_error('hashed_password','パスワードが間違っています')
+        if not issue.meeting in list(Meeting.normal_meeting_queryset()):
+            self.add_error('meeting',"普通資料としての締め切りを過ぎています")
         return cleaned_data
 
 class PostNoteForm(Form):
@@ -109,6 +109,8 @@ class PostNoteForm(Form):
 
         if Note.objects.filter( block__exact=Block.objects.get(id__exact=cleaned_data.get("block")), issue__meeting__exact=Meeting.posting_note_meeting_queryset().get() ).exists():
             self.add_error(None, "既に議事録は投稿されています")
+
+        return cleaned_data
 
 class EditNoteForm(Form):
     hashed_password = forms.CharField( label="パスワード" )
@@ -132,9 +134,8 @@ class EditNoteForm(Form):
         meeting = Meeting.posting_note_meeting_queryset().get()
         issue   = Issue.objects.filter(meeting__exact=meeting).first()
         if cleaned_data.get('hashed_password') != None and hashlib.sha512( cleaned_data.get('hashed_password').encode('utf-8') ).hexdigest() == Note.objects.get(block__id__exact=cleaned_data.get('block'),issue__exact=issue).hashed_password:
-            return cleaned_data
-        else:
             self.add_error('hashed_password',"パスワードが間違っています")
+        return cleaned_data
 
 class TableForm(ModelForm):
     '''表のフォーム'''
@@ -144,9 +145,7 @@ class TableForm(ModelForm):
 
     def clean(self):
         cleaned_data = super(TableForm, self).clean()
-        if cleaned_data.get('hashed_password') != None and hashlib.sha512( cleaned_data.get('hashed_password').encode('utf-8') ).hexdigest() == cleaned_data.get('issue').hashed_password:
-            return cleaned_data
-        else:
+        if not (cleaned_data.get('hashed_password') != None and hashlib.sha512( cleaned_data.get('hashed_password').encode('utf-8') ).hexdigest() == cleaned_data.get('issue').hashed_password):
             self.add_error('hashed_password',"パスワードが間違っています")
         if not cleaned_data.get('issue') in Issue.posting_table_issue_queryset():
             self.add_error('issue',"この議案に対する表は投稿できません。")
