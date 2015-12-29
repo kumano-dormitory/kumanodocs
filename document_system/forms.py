@@ -88,10 +88,9 @@ class DeleteIssueForm(Form):
     def clean(self):
         cleaned_data = super(Form,self).clean()
         
-        if Issue.objects.get(id__exact=cleaned_data.get('issue_id')).hashed_password == hashlib.sha512(cleaned_data.get('hashed_password').encode('utf-8')).hexdigest():
-            return cleaned_data
-        else:
+        if Issue.objects.get(id__exact=cleaned_data.get('issue_id')).hashed_password != hashlib.sha512(cleaned_data.get('hashed_password').encode('utf-8')).hexdigest():
             self.add_error('hashed_password','パスワードが間違っています')
+        return cleaned_data
 
 class PostNoteForm(Form):
     block = forms.IntegerField( widget=forms.HiddenInput )
