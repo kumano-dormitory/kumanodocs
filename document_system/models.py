@@ -186,7 +186,7 @@ class Table(models.Model):
     table_order     = models.IntegerField(verbose_name="表の順番",default=(-1))
 
     def __str__(self):
-        return self.issue.title + "" + self.caption
+        return self.caption + "(議案:" + self.issue.title + ")"
 
     def get_list(self):
         return csv.reader(self.csv_text.split('\n'),delimiter = '\t')
