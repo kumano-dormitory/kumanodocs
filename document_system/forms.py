@@ -59,7 +59,7 @@ class AppendIssueForm(IssueForm):
     def clean(self):
         cleaned_data = super(AppendIssueForm,self).clean()
 
-        if cleaned_data.get('meeting') in list(Meeting.append_meeting_queryset()):
+        if not cleaned_data.get('meeting') in list(Meeting.append_meeting_queryset()):
             self.add_error('meeting',"追加資料としての締め切りを過ぎています")
         return cleaned_data
 
