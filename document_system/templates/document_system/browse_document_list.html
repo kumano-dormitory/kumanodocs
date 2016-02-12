@@ -7,6 +7,7 @@
     {% if meeting_list %}
     <dl>
         {% for meeting in meeting_list %}
+        {% if meeting.has_issue %}
         <dt><a href="{% url 'document_system:browse_document' pk=meeting.id %}">{{meeting.meeting_date}}のブロック会議</a></dt>
         <dd>
             <small>
@@ -17,6 +18,7 @@
             </ul>
             </small>
         </dd>
+        {% endif %}
         {% endfor %}
     </dl>
     {% else %}

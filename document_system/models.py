@@ -74,6 +74,9 @@ class Meeting(models.Model):
         else:
             return False
 
+    def has_issue(self):
+        return Issue.objects.filter(meeting__exact=self).exists()
+
     class Meta:
         verbose_name_plural = "ブロック会議の日程"
         ordering = ('-meeting_date',)
