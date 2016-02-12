@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
-{% block title %}資料閲覧{% endblock %}
+{% block title %}閲覧{% endblock %}
 
 {% block content %}
-    <h3 class="page-header">{% block pageheader %}資料一覧{% endblock %}</h3>
+    <h3 class="page-header">{% block pageheader %}議案一覧{% endblock %}</h3>
     {% if issue_list %}
         {% include 'document_system/components/issue_list.html' %}
         {% if is_paginated %}

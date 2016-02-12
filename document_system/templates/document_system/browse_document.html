@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}{{ issue_list.first.meeting.meeting_date }}のブロック会議資料{% endblock %}
+
+{% block content %}
+    <h1 class="page-header">{% block pageheader %}{{ issue_list.first.meeting.meeting_date }}のブロック会議資料{% endblock %}</h1>
+    {% if issue_list %}
+        {% for issue in issue_list %}
+            {% include 'document_system/components/issue_for_document.html' %}
+        {% endfor %}
+        {% if is_paginated %}
+            {% include 'document_system/components/pagination.html' %}
+        {% endif %}
+    {% else %}
+        資料はありません
+    {% endif %}
+{% endblock %}

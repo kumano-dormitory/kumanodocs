@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from django.shortcuts import render_to_response, redirect
+from django.shortcuts import render_to_response, redirect, get_object_or_404
 from django.template import RequestContext
-from django.views.generic import ListView,DetailView
+from django.views.generic import ListView,DetailView,TemplateView
 from django.views.generic.edit import FormView, UpdateView, CreateView
 from document_system.models import Meeting, Issue, Block, Note, IssueType, Table
 from document_system.forms import NormalIssueForm,AppendIssueForm,EditIssueForm,PostNoteForm,EditNoteForm,TableForm,IssueOrderForm,SearchIssueForm,DeleteIssueForm
@@ -106,6 +106,33 @@ class BrowseIssueDetailView(DetailView):
         context['Meeting'] = Meeting
         context['Block']   = Block
         context['notes']   = [note for note in Note.objects.filter(issue__exact=context['issue']).order_by('block') if note.text != ""]
+        return context
+
+class BrowseDocumentListView(ListView):
+    context_object_name = 'meeting_list'
+    template_name       = 'document_system/browse_document_list.html'
+    paginate_by         = 20
+    queryset            = Meeting.objects.all()
+
+    def get_context_data(self,**kwargs):
+        context = super(BrowseDocumentListView,self).get_context_data(**kwargs)
+        context['Meeting'] = Meeting
+        context['Block']   = Block
+        return context
+
+class BrowseDocumentView(ListView):
+    context_object_name = 'issue_list'
+    template_name       = 'document_system/browse_document.html'
+    paginate_by         = 10
+
+    def get_queryset(self):
+        meeting = get_object_or_404(Meeting, id__exact=self.kwargs['pk'])
+        return Issue.objects.filter(meeting__exact=meeting).order_by('issue_order')
+    
+    def get_context_data(self,**kwargs):
+        context = super(BrowseDocumentView,self).get_context_data(**kwargs)
+        context['Meeting'] = Meeting
+        context['Block']   = Block
         return context
 
 class SearchIssueListView(BrowseIssueListView):

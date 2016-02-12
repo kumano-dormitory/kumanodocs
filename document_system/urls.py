@@ -12,6 +12,9 @@ urlpatterns = patterns('',
     url(r'^delete_issue/(?P<issue_id>\d+)/$',views.delete_issue, name='delete_issue'),
     
     url(r'^post_note/(?P<block_id>\d+)/$', views.post_note, name='post_note'), 
+
+    url(r'^browse_document/$', views.BrowseDocumentListView.as_view(), name='browse_document_list'),
+    url(r'^browse_document/(?P<pk>\d+)/$', views.BrowseDocumentView.as_view(), name='browse_document'),
     
     url(r'^browse_issue/$', views.BrowseIssueListView.as_view() , name='browse_issue_list'),
     url(r'^browse_issue/(?P<pk>\d+)/$', views.BrowseIssueDetailView.as_view(), name='browse_issue_detail'),

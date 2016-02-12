@@ -15,13 +15,6 @@ pre {
 {% endblock %}
 
 {% block content %}
-    <h3 class="page-header">
-        資料閲覧
-        {% if issue.is_editable %}
-            <a href='{% url 'document_system:edit_issue' issue_id=issue.id %}' class='btn-xs btn-success' style='text-decoration:none'>編集</a>
-            <a href='{% url 'document_system:delete_issue' issue_id=issue.id %}' class='btn-xs btn-danger' style='text-decoration:none'>削除</a>
-        {% endif %}
-    </h3>
     {% include 'document_system/components/issue.html' %}
     {% if notes %}
     <h2>議事録</h2>

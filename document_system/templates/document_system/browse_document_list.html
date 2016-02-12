@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}会議資料閲覧{% endblock %}
+
+{% block content %}
+    <h3 class="page-header">{% block pageheader %}ブロック会議一覧{% endblock %}</h3>
+    {% if meeting_list %}
+    <dl>
+        {% for meeting in meeting_list %}
+        <dt><a href="{% url 'document_system:browse_document' pk=meeting.id %}">{{meeting.meeting_date}}のブロック会議</a></dt>
+        <dd>
+            <small>
+            <ul>
+            {% for issue in meeting.issue_set.all %}
+                <li>{{ issue.get_qualified_title }}</li>
+            {% endfor %}
+            </ul>
+            </small>
+        </dd>
+        {% endfor %}
+    </dl>
+    {% else %}
+    閲覧可能なブロック会議資料はありません
+    {% endif %}
+{% endblock %}
