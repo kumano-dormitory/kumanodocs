@@ -22,7 +22,7 @@ pre {
             <a href='{% url 'document_system:delete_issue' issue_id=issue.id %}' class='btn-xs btn-danger' style='text-decoration:none'>削除</a>
         {% endif %}
     </h3>
-    <dl class="dl-horizontal">
+    <dl class="dl-vertical">
         <dt>文責者</dt>
         <dd>{{ issue.author }}</dd>
         <dt>本文</dt>
@@ -69,7 +69,7 @@ pre {
     </dl>
     {% if notes %}
     <h2>議事録</h2>
-    <dl class="dl-horizontal">
+    <dl class="dl-vertical">
         {% for note in notes %}
         <dt>{{note.block.name}}</dt>
         <dd><pre>{{note.text}}</pre></dd>
