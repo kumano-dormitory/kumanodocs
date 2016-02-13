@@ -3,7 +3,7 @@
 {% block title %}閲覧{% endblock %}
 
 {% block content %}
-    <h3 class="page-header">{% block pageheader %}議案一覧{% endblock %}</h3>
+    <h3 class="page-header">議案一覧</h3>
     {% if issue_list %}
         {% include 'document_system/components/issue_list.html' %}
         {% if is_paginated %}
