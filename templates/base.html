@@ -42,7 +42,11 @@
                 <form class="navbar-form" role="search" action="{% url 'document_system:search_issue' %}" method="GET">
                     <div class="input-group">
                         <span class="input-group-addon" id="search-icon" ><span class="glyphicon glyphicon-search"></span></span>
+                        {% if search_keywords %}
+                        <input type="text" name="keywords" class="form-control" aria-describedby="search-icon" value="{{search_keywords}}" />
+                        {% else %}
                         <input type="text" name="keywords" class="form-control" placeholder="Search" aria-describedby="search-icon" />
+                        {% endif %}
                     </div>
                 </form>
             </li>
