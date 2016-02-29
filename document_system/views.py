@@ -13,18 +13,13 @@ import hashlib
 
 def top(request):
     return render_to_response('document_system/top.html',
-                              {'Meeting':Meeting
-                              ,'Block'  :Block},
+                              {'Meeting': Meeting
+                              ,'Block':Block
+                              },
                               context_instance=RequestContext(request))
 
 class IssueView(FormView):
     template_name = 'document_system/post_issue.html'
-
-    def get_context_data(self,**kwargs):
-        context = super(IssueView,self).get_context_data(**kwargs)
-        context['Meeting'] = Meeting
-        context['Block']   = Block
-        return context
     
     def form_valid(self, form):
         issue = form.save()
@@ -56,9 +51,7 @@ def edit_issue(request,issue_id=None):
         form = EditIssueForm(instance=issue) 
     
     return render_to_response('document_system/post_issue.html',
-                                {'Meeting':Meeting
-                                ,'Block':Block
-                                ,'form':form
+                                {'form':form
                                 ,'tables':issue.tables
                                 },
                                 context_instance=RequestContext(request))
@@ -78,10 +71,9 @@ def delete_issue(request, issue_id=None):
         form = DeleteIssueForm(issue_id=issue_id)
 
     return render_to_response('document_system/delete_issue_detail.html',
-                                {'Meeting':Meeting
-                                ,'Block':Block
-                                ,'form':form
-                                ,'issue':issue},
+                                {'form':form
+                                ,'issue':issue
+                                },
                                 context_instance=RequestContext(request))
 
 class BrowseIssueListView(ListView):
@@ -90,12 +82,6 @@ class BrowseIssueListView(ListView):
     paginate_by         = 50
     queryset            = Issue.objects.order_by('-meeting__meeting_date','issue_order')
 
-    def get_context_data(self,**kwargs):
-        context = super().get_context_data(**kwargs)
-        context['Meeting'] = Meeting
-        context['Block']   = Block
-        return context
-
 class BrowseIssueDetailView(DetailView):
     context_object_name = 'issue'
     template_name       = 'document_system/browse_issue_detail.html'
@@ -103,8 +89,6 @@ class BrowseIssueDetailView(DetailView):
     
     def get_context_data(self,**kwargs):
         context = super(BrowseIssueDetailView,self).get_context_data(**kwargs)
-        context['Meeting'] = Meeting
-        context['Block']   = Block
         context['notes']   = [note for note in Note.objects.filter(issue__exact=context['issue']).order_by('block') if note.text != ""]
         return context
 
@@ -113,12 +97,6 @@ class BrowseDocumentListView(ListView):
     template_name       = 'document_system/browse_document_list.html'
     paginate_by         = 20
     queryset            = Meeting.objects.all()
-
-    def get_context_data(self,**kwargs):
-        context = super(BrowseDocumentListView,self).get_context_data(**kwargs)
-        context['Meeting'] = Meeting
-        context['Block']   = Block
-        return context
 
 class BrowseDocumentView(ListView):
     context_object_name = 'issue_list'
@@ -129,12 +107,6 @@ class BrowseDocumentView(ListView):
         meeting = get_object_or_404(Meeting, id__exact=self.kwargs['pk'])
         return Issue.objects.filter(meeting__exact=meeting).order_by('issue_order')
     
-    def get_context_data(self,**kwargs):
-        context = super(BrowseDocumentView,self).get_context_data(**kwargs)
-        context['Meeting'] = Meeting
-        context['Block']   = Block
-        return context
-
 class SearchIssueListView(BrowseIssueListView):
     template_name = 'document_system/search_issue_list.html'
     
@@ -173,9 +145,7 @@ def post_note(request, block_id=None):
     else:
         form = PostNoteForm(initial={'block':int(block_id)})
     return render_to_response('document_system/post_note.html',
-                                {'Meeting':Meeting
-                                ,'Block':Block
-                                ,'posting_block':Block.objects.get(id__exact=block_id)
+                                {'posting_block':Block.objects.get(id__exact=block_id)
                                 ,'form':form
                                 },
                                 context_instance=RequestContext(request))
@@ -199,9 +169,7 @@ def edit_note(request, block_id=None):
         form = EditNoteForm(block_id=block_id)
 
     return render_to_response('document_system/edit_note.html',
-                                {'Meeting':Meeting
-                                ,'Block':Block
-                                ,'posting_block':Block.objects.get(id__exact=block_id)
+                                {'posting_block':Block.objects.get(id__exact=block_id)
                                 ,'form':form
                                 },
                                 context_instance=RequestContext(request))
@@ -210,11 +178,6 @@ class PostTableView(CreateView):
     model = Table
     template_name = 'document_system/post_table.html'
     form_class    = TableForm
-
-    def get_context_data(self,**kwargs):
-        context = super(PostTableView,self).get_context_data(**kwargs)
-        context['Meeting'] = Meeting
-        return context
 
     def get_initial(self):
         initial = super(PostTableView,self).get_initial()
@@ -240,11 +203,6 @@ class EditTableView(UpdateView):
         initial['csv_text']=""
         return initial
 
-    def get_context_data(self,**kwargs):
-        context = super(EditTableView,self).get_context_data(**kwargs)
-        context['Meeting'] = Meeting
-        return context
-
     def get_success_url(self):
         return reverse('document_system:browse_issue_detail',kwargs={"pk":self.object.issue.id})
 
@@ -253,23 +211,11 @@ class DownloadDocumentListView(ListView):
     template_name       = 'document_system/download_document_list.html'
     queryset            = Meeting.rearrange_issues_meeting_queryset()
 
-    def get_context_data(self,**kwargs):
-        context = super(DownloadDocumentListView,self).get_context_data(**kwargs)
-        context['Meeting'] = Meeting
-        context['Block']   = Block
-        return context
-
 class DownloadNoteListView(ListView):
     context_object_name = 'meeting_list'
     template_name = 'document_system/download_note_list.html'
     queryset      = Meeting.download_note_meeting_queryset()
     
-    def get_context_data(self,**kwargs):
-        context = super(DownloadNoteListView,self).get_context_data(**kwargs)
-        context['Meeting'] = Meeting
-        context['Block']   = Block
-        return context
-
 def download_document_detail(request, meeting_id=None):
     if request.method == 'POST':
         form = IssueOrderForm(request.POST,meeting_id=meeting_id)
@@ -283,9 +229,7 @@ def download_document_detail(request, meeting_id=None):
         form = IssueOrderForm(meeting_id=meeting_id)
     
     return render_to_response('document_system/download_document_detail.html',
-                                {'Meeting':Meeting
-                                ,'Block':Block
-                                ,'issues':Issue.objects.filter(meeting__id__exact=meeting_id).order_by('issue_order')
+                                {'issues':Issue.objects.filter(meeting__id__exact=meeting_id).order_by('issue_order')
                                 ,'form':form
                                 ,'meeting_id':meeting_id
                                 },
@@ -309,9 +253,7 @@ def output_pdf(request,tex_string,meeting_id,document_type):
         subprocess.check_output(['ptex2pdf', '-u', '-l', filename + '.tex'],cwd='/tmp')
     except subprocess.CalledProcessError as e:
         return render_to_response('document_system/pdf_error.html',
-                                    {'Meeting':Meeting
-                                    ,'Block':Block
-                                    ,'error_output':e.output
+                                    {'error_output':e.output
                                     },
                                     context_instance=RequestContext(request))
     
