@@ -6,13 +6,6 @@
 
 {% block content %}
     <h3 class="page-header">資料の削除</h3>
-<h3 class='page-header'>
-    {{ issue.get_title_with_types }}
-    {% if issue.is_editable %}
-        <a href='{% url 'document_system:edit_issue' issue_id=issue.id %}' class='btn-xs btn-success' style='text-decoration:none'>編集</a>
-        <a href='{% url 'document_system:delete_issue' issue_id=issue.id %}' class='btn-xs btn-danger' style='text-decoration:none'>削除</a>
-    {% endif %}
-    </h3>
     <dl class="dl-horizontal">
         <dt>文責者</dt>
         <dd>{{ issue.author }}</dd>
@@ -56,6 +49,7 @@
                 </table>
                 {% endfor %}
             </dd>
+        {% endif %}
     <hr>
     <form action="" method="POST" class="form-horizontal">
         {% csrf_token %}
