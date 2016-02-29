@@ -66,7 +66,7 @@ class AppendIssueForm(IssueForm):
 class EditIssueForm(NormalIssueForm):
     def clean(self):
         cleaned_data = super(EditIssueForm,self).clean()
-        if cleaned_data.get("hashed_password") == self.instance.hashed_password:
+        if cleaned_data.get("hashed_password") != self.instance.hashed_password:
             self.add_error('hashed_password','パスワードが間違っています')
         return cleaned_data
 
