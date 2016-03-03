@@ -88,6 +88,9 @@ class IssueType(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        verbose_name_plural = "議案の種類"
+
 class Issue(models.Model):
     '''議案'''
     meeting         = models.ForeignKey(Meeting,verbose_name="日付")
@@ -98,6 +101,8 @@ class Issue(models.Model):
     vote_content    = models.TextField(verbose_name="採決内容",blank=True)
     hashed_password = models.TextField(verbose_name="パスワード")
     issue_order     = models.IntegerField(verbose_name="議案の順番",default=(-1))
+    created_at      = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at      = models.DateTimeField(auto_now=True, null=True)
     
     def __str__(self):
         return self.title

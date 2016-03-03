@@ -66,6 +66,10 @@ pre {
                 {% endfor %}
             </dd>
         {% endif %}
+        <dt>議案の初版投稿日時</dt>
+        <dd>{{ issue.created_at }}</dd>
+        <dt>議案の更新日時</dt>
+        <dd>{{ issue.updated_at }}</dd>
     </dl>
     {% if notes %}
     <h2>議事録</h2>
