@@ -88,6 +88,9 @@ class IssueType(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        verbose_name_plural = "議案の種類"
+
 class Issue(models.Model):
     '''議案'''
     meeting         = models.ForeignKey(Meeting,verbose_name="日付")
