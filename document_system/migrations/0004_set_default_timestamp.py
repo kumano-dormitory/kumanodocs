@@ -51,14 +51,4 @@ class Migration(migrations.Migration):
             forwards_func, 
             reverse_func
         ),
-        migrations.AlterField(
-            model_name='issue',
-            name='created_at',
-            field=models.DateTimeField(auto_now_add=True),
-        ),
-        migrations.AlterField(
-            model_name='issue',
-            name='updated_at',
-            field=models.DateTimeField(auto_now=True),
-        ),
     ]
