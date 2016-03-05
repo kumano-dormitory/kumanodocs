@@ -5,7 +5,7 @@ from django.utils import html
 from datetime import date, datetime, time, timedelta
 from django.db.models import Q
 import csv
-# Create your models here.
+import pytz
 
 class Meeting(models.Model):
     '''ブロック会議'''
@@ -77,6 +77,12 @@ class Meeting(models.Model):
     def has_issue(self):
         return Issue.objects.filter(meeting__exact=self).exists()
 
+    def deadline_datetime(self):
+        deadline_date = self.meeting_date - timedelta(days=2)
+        deadline_time = time(hour=12, tzinfo=pytz.timezone('Asia/Tokyo'))
+        deadline_datetime = datetime.combine(deadline_date, deadline_time)
+        return deadline_datetime
+
     class Meta:
         verbose_name_plural = "ブロック会議の日程"
         ordering = ('-meeting_date',)
@@ -104,37 +110,57 @@ class Issue(models.Model):
     created_at      = models.DateTimeField(auto_now_add=True, null=False)
     updated_at      = models.DateTimeField(auto_now=True, null=False)
     
-    def __str__(self):
-        return self.title
-
-    def get_qualified_title(self):
-        return "【" + (str(self.issue_order) if self.issue_order > 0 else "追加議案") + "】" + self.title + "【" + "・".join([t.name for t in self.issue_types.all()]) + "】" 
-
-    def get_title_with_types(self):
-        return self.title + "【" + "・".join([t.name for t in self.issue_types.all()]) + "】" 
-
-    def is_votable(self):
-        return IssueType.objects.get(name__exact="採決") in self.issue_types.all()
-
-    def notes(self):
-        return Note.objects.filter(issue__exact=self).order_by('block__name')
-
-    def get_qualified_title_for_note(self):
-        return "【0 - " + (str(self.issue_order) if self.issue_order > 0 else "追加議案") + "】" + self.title + "【" + "・".join([t.name for t in self.issue_types.all()]) + "】" 
-
-    def tables(self):
-        return Table.objects.filter(issue=self)#.order_by('table_order')
-
-    def tag_eliminated_text(self):
-        return html.strip_tags(self.text)
-
-    def is_editable(self):
-        return (self.meeting in list(Meeting.normal_meeting_queryset()))
-        
     @classmethod
     def posting_table_issue_queryset(cls):
         return cls.objects.filter(meeting__in = Meeting.posting_table_meeting_queryset())
     
+    def __str__(self):
+        return self.title
+
+    def get_qualified_title(self):
+        return "【%s】%s【%s】" % (self.issue_number(),  self.title,  self.issue_types_str())
+
+    def get_qualified_title_for_note(self):
+        return "【0 - %s】%s【%s】" % (self.issue_number, self.issue_title, self.issue_types_str)
+    
+    def get_title_with_types(self):
+        return "%s【%s】" % (self.title, self.issue_types_str())
+
+    def get_tag_eliminated_text(self):
+        return html.strip_tags(self.text)
+    
+    def is_votable(self):
+        return IssueType.objects.get(name__exact="採決") in self.issue_types.all()
+
+    def is_editable(self):
+        return (self.meeting in list(Meeting.normal_meeting_queryset()))
+
+    def is_append_issue(self):
+        if self.updated_at > self.meeting.deadline_datetime():
+            return True
+        else:
+            return False
+
+    def notes(self):
+        return Note.objects.filter(issue__exact=self).order_by('block__name')
+
+    def tables(self):
+        return Table.objects.filter(issue=self)#.order_by('table_order')
+    
+    def issue_types_str(self):
+        return "・".join([t.name for t in self.issue_types.all()])
+
+    def issue_number(self):
+        if self.is_append_issue():
+            issue_number = "追加議案"
+        else:
+            if self.issue_order == -1:
+                issue_number = ""
+            else:
+                issue_number = str(self.issue_order)
+
+        return issue_number
+        
     class Meta:
         verbose_name_plural = "ブロック会議の議案"
         ordering = ('-meeting__meeting_date','issue_order')
