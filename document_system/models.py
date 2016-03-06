@@ -247,6 +247,10 @@ class Note(models.Model):
     text            = models.TextField(blank=True)
     hashed_password = models.TextField()
 
+    @classmethod
+    def exists_same_note(cls, block, meeting):
+        return cls.objects.exists(block__exact=block, issue__meeting__exact=meeting)
+
     def __str__(self):
         return self.block.name + " " + self.issue.title
     

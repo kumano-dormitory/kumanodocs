@@ -102,15 +102,15 @@ class PostNoteForm(Form):
         
         meeting = Meeting.posting_note_meeting_queryset()
 
-        for issue in Issue.objects.filter(meeting__exact=meeting).order_by('issue_order'):
+        for issue in meeting.issue_set.order_by('issue_order'):
             self.fields['issue_' + str(issue.id)] = forms.CharField( widget=forms.Textarea ,label=issue.get_qualified_title(), required=False )
 
     def clean(self):
         cleaned_data = super(PostNoteForm,self).clean()
-
-        if Note.objects.filter( block__exact=Block.objects.get(id__exact=cleaned_data.get("block")), issue__meeting__exact=Meeting.posting_note_meeting_queryset() ).exists():
+        block = Block.objects.get(pk=cleaned_data.get("block"))
+        meeting = Meeting.posting_note_meeting_queryset()
+        if Note.exists_same_note(block, meeting):
             self.add_error(None, "既に議事録は投稿されています")
-
         return cleaned_data
 
 class EditNoteForm(Form):
@@ -133,9 +133,12 @@ class EditNoteForm(Form):
         cleaned_data = super(EditNoteForm,self).clean()
         
         meeting = Meeting.posting_note_meeting_queryset()
-        issue   = Issue.objects.filter(meeting__exact=meeting).first()
-        if cleaned_data.get('hashed_password') != None and hashlib.sha512( cleaned_data.get('hashed_password').encode('utf-8') ).hexdigest() == Note.objects.get(block__id__exact=cleaned_data.get('block'),issue__exact=issue).hashed_password:
-            self.add_error('hashed_password',"パスワードが間違っています")
+        issue   = meeting.issue_set.first()
+        if cleaned_data.get('hashed_password'):
+            posted_hashed_password = hashlib.sha512( cleaned_data.get('hashed_password').encode('utf-8') ).hexdigest()
+            stored_hashed_password = Note.objects.get(block__id__exact=cleaned_data.get('block'),issue__exact=issue).hashed_password
+            if posted_hashed_password != stored_hashed_password :
+                self.add_error('hashed_password',"パスワードが間違っています")
         return cleaned_data
 
 class TableForm(ModelForm):
@@ -169,7 +172,8 @@ class IssueOrderForm(Form):
 
         super(IssueOrderForm,self).__init__(*args,**kwargs)
         
-        issues = Issue.objects.filter(meeting__id__exact=meeting_id)
+        meeting = Meeting.objects.get(pk=meeting_id)
+        issues = meeting.issue_set.all()
         for issue in issues:
             self.fields['issue_'+str(issue.id)] = forms.IntegerField(min_value=1,max_value=len(issues))
 
