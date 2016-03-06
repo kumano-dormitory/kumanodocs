@@ -15,7 +15,7 @@ def forwards_func(apps, schema_editor):
     Issue = apps.get_model('document_system', 'Issue')
     db_alias = schema_editor.connection.alias
 
-    issues_null_timestamp = Issue.objects.filter(models.Q(updated_at__exact=None) | models.Q(updated_at__exact=None))
+    issues_null_timestamp = Issue.objects.using(db_alias).filter(models.Q(updated_at__exact=None) | models.Q(updated_at__exact=None))
     for issue in issues_null_timestamp:
         posted_date = issue.meeting.meeting_date - timedelta(days=2)
         if issue.issue_order < 0:
