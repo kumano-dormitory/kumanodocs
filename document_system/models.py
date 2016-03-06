@@ -15,15 +15,13 @@ class Meeting(models.Model):
         return self.meeting_date.strftime('%Y-%m-%d')
     
     @classmethod
-    def normal_meeting_queryset(cls):
-        if datetime.now().time() >= time(hour=21):
-            return cls.objects.filter(meeting_date__gte=(date.today() + timedelta(days=3))).order_by('meeting_date')
-        else :
-            return cls.objects.filter(meeting_date__gte=(date.today() + timedelta(days=2))).order_by('meeting_date')
+    def normal_issue_meetings(cls):
+        _meetings = cls.objects.filter(meeting_date__gte=date.today()).order_by('meeting_date')
+        return filter(lambda meeting: meeting.is_postable_normal_issue() ,_meetings)
 
     @classmethod
-    def exists_normal(cls):
-        return cls.normal_meeting_queryset().exists()
+    def exists_normal_issue_meetings(cls):
+        return bool(list(cls.normal_issue_meetings()))
     
     @classmethod
     def append_meeting_queryset(cls):
@@ -42,20 +40,16 @@ class Meeting(models.Model):
 
     @classmethod 
     def posting_table_meeting_queryset(cls):
-        return cls.normal_meeting_queryset() or cls.append_meeting_queryset()
+        return cls.normal_issue_meetings() or cls.append_meeting_queryset()
 
     @classmethod
     def posting_note_meeting_queryset(cls):
         if datetime.now().time() >= time(hour=18):
-            return cls.objects.filter(meeting_date__exact=(date.today()))
+            return cls.objects.get(meeting_date__exact=(date.today()))
         elif datetime.now().time() <= time(hour=18):
-            return cls.objects.filter(meeting_date__exact=(date.today() - timedelta(days=1)))
+            return cls.objects.get(meeting_date__exact=(date.today() - timedelta(days=1)))
         else:
             return cls.objects.none()
-    
-    @classmethod
-    def exists_meeting_for_posting_note(cls):
-        return cls.posting_note_meeting_queryset().exists()
     
     @classmethod
     def rearrange_issues_meeting_queryset(cls):
@@ -74,14 +68,23 @@ class Meeting(models.Model):
         else:
             return False
 
+    def is_postable_normal_issue(self):
+        if self.deadline_datetime() > datetime.now(tz=pytz.timezone('Asia/Tokyo')):
+            return True
+        else:
+            return False
+
     def has_issue(self):
-        return Issue.objects.filter(meeting__exact=self).exists()
+        return self.issue_set.exists()
 
     def deadline_datetime(self):
         deadline_date = self.meeting_date - timedelta(days=2)
         deadline_time = time(hour=12, tzinfo=pytz.timezone('Asia/Tokyo'))
         deadline_datetime = datetime.combine(deadline_date, deadline_time)
         return deadline_datetime
+
+    def previous_meeting(self):
+        return Meeting.objects.filter(meeting_date__lt=self.meeting_date).order_by('-meeting_date').first()
 
     class Meta:
         verbose_name_plural = "ブロック会議の日程"
@@ -97,6 +100,29 @@ class IssueType(models.Model):
     class Meta:
         verbose_name_plural = "議案の種類"
 
+class IssueQuerySet(models.QuerySet):
+    def append_issue(self):
+        return filter(lambda issue: issue.is_append_issue(), self)
+
+    def normal_issue(self):
+        return filter(lambda issue: issue.is_normal_issue(), self)
+
+    def has_notes(self):
+        return filter(lambda issue: issue.has_notes(), self)
+
+class IssueManager(models.Manager):
+    def get_queryset(self):
+        return IssueQuerySet(self.model, using=self._db)
+    
+    def append_issue(self):
+        return self.get_queryset().append_issue()
+
+    def normal_issue(self):
+        return self.get_queryset().normal_issue()
+
+    def has_notes(self):
+        return self.get_queryset().has_notes()
+
 class Issue(models.Model):
     '''議案'''
     meeting         = models.ForeignKey(Meeting,verbose_name="日付")
@@ -109,11 +135,13 @@ class Issue(models.Model):
     issue_order     = models.IntegerField(verbose_name="議案の順番",default=(-1))
     created_at      = models.DateTimeField(auto_now_add=True, null=False)
     updated_at      = models.DateTimeField(auto_now=True, null=False)
+
+    objects = IssueManager()
     
     @classmethod
     def posting_table_issue_queryset(cls):
         return cls.objects.filter(meeting__in = Meeting.posting_table_meeting_queryset())
-    
+
     def __str__(self):
         return self.title
 
@@ -121,7 +149,7 @@ class Issue(models.Model):
         return "【%s】%s【%s】" % (self.issue_number(),  self.title,  self.issue_types_str())
 
     def get_qualified_title_for_note(self):
-        return "【0 - %s】%s【%s】" % (self.issue_number, self.issue_title, self.issue_types_str)
+        return "【0 - %s】%s【%s】" % (self.issue_number(), self.title, self.issue_types_str())
     
     def get_title_with_types(self):
         return "%s【%s】" % (self.title, self.issue_types_str())
@@ -133,19 +161,35 @@ class Issue(models.Model):
         return IssueType.objects.get(name__exact="採決") in self.issue_types.all()
 
     def is_editable(self):
-        return (self.meeting in list(Meeting.normal_meeting_queryset()))
+        if datetime.now(tz=pytz.timezone('Asia/Tokyo')) < self.meeting.deadline_datetime():
+            return True
+        else:
+            return False
 
     def is_append_issue(self):
         if self.updated_at > self.meeting.deadline_datetime():
             return True
         else:
             return False
+    
+    def is_normal_issue(self):
+        return not self.is_append_issue()
+
+    def has_notes(self):
+        '''
+        どこかのブロックが空でない議事録を投稿していればTrue
+        そうでなければFalse
+        '''
+        for note in self.notes():
+            if note.text != '':
+                return True
+        return False
 
     def notes(self):
-        return Note.objects.filter(issue__exact=self).order_by('block__name')
+        return self.note_set.order_by('block__name')
 
     def tables(self):
-        return Table.objects.filter(issue=self)#.order_by('table_order')
+        return self.table_set.all()#.order_by('table_order')
     
     def issue_types_str(self):
         return "・".join([t.name for t in self.issue_types.all()])
@@ -178,13 +222,13 @@ class Block(models.Model):
     
     @classmethod
     def blocks_posted_notes(cls):
-        if Meeting.posting_note_meeting_queryset().exists():
-            meeting = Meeting.posting_note_meeting_queryset().get()
-            issue   = Issue.objects.filter(meeting__exact=meeting).first()
+        meeting = Meeting.posting_note_meeting_queryset()
+        if meeting:
+            issue   = meeting.issue_set.first()
             if issue == None:
                 return []
             else:
-                notes = Note.objects.filter(issue__exact=issue)
+                notes = issue.note_set.select_related('block')
                 return [note.block for note in notes]
         else:
             return []

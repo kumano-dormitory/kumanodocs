@@ -8,7 +8,7 @@
     <h2>資料の投稿</h2>
     
         <div class="btn-group btn-group-justified">
-            <a href="{% url 'document_system:post_normal_issue' %}" class="btn btn-default {% if not Meeting.exists_normal %}disabled{% endif %}">
+            <a href="{% url 'document_system:post_normal_issue' %}" class="btn btn-default {% if not Meeting.exists_normal_issue_meetings %}disabled{% endif %}">
                 <b>通常資料</b><br>
                 普通に資料を出す
             </a>
@@ -18,7 +18,7 @@
             </a>
         </div>
 
-    {% if Meeting.exists_meeting_for_posting_note %}
+    {% if Meeting.posting_note_meeting_queryset %}
     <h2>議事録の投稿</h2>
         <div class="btn-group btn-group-justified">
             {% for block in Block.all_blocks %}

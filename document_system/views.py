@@ -36,7 +36,7 @@ class AppendIssueView(IssueView):
 def edit_issue(request,issue_id=None):
     issue = Issue.objects.get(id__exact=issue_id)
 
-    if not issue.meeting in list(Meeting.normal_meeting_queryset()):
+    if not issue.is_editable():
         return redirect('document_system:browse_issue_detail',pk=issue.id)
     
     if request.method == "POST":
@@ -59,7 +59,7 @@ def edit_issue(request,issue_id=None):
 def delete_issue(request, issue_id=None):
     issue = Issue.objects.get(id__exact=issue_id)
     
-    if not issue.meeting in list(Meeting.normal_meeting_queryset()):
+    if issue.is_editable():
         return redirect('document_system:browse_issue_detail',pk=issue.id)
 
     if request.method == "POST":
@@ -132,7 +132,7 @@ def post_note(request, block_id=None):
             block = Block.objects.get(id__exact=form.cleaned_data['block'])
             hashed_password = hashlib.sha512(form.cleaned_data['hashed_password'].encode("UTF-8")).hexdigest()
             
-            for issue in Issue.objects.filter(meeting__exact=Meeting.posting_note_meeting_queryset().get()):
+            for issue in Issue.objects.filter(meeting__exact=Meeting.posting_note_meeting_queryset()):
                 note = Note()
                 note.issue = issue
                 note.block = block
@@ -158,7 +158,7 @@ def edit_note(request, block_id=None):
             posting_block = Block.objects.get(id__exact=form.cleaned_data['block'])
             hashed_password = hashlib.sha512(form.cleaned_data['hashed_password'].encode("UTF-8")).hexdigest()
             
-            for issue in Issue.objects.filter(meeting__exact=Meeting.posting_note_meeting_queryset().get()):
+            for issue in Issue.objects.filter(meeting__exact=Meeting.posting_note_meeting_queryset()):
                 note = Note.objects.get(issue__exact=issue,block__exact=posting_block)
                 note.text = form.cleaned_data['note_' + str(note.id)]
                 note.save()
@@ -265,9 +265,9 @@ def output_pdf(request,tex_string,meeting_id,document_type):
 
 def document_pdf(request, meeting_id=None):
     meeting = Meeting.objects.get(id__exact=meeting_id)
-    issues  = Issue.objects.filter(meeting__exact=meeting).order_by('issue_order')
-    prev_meeting = Meeting.objects.filter(meeting_date__lt=meeting.meeting_date).order_by('-meeting_date').first()
-    prev_issues = [issue for issue in Issue.objects.filter(meeting__exact=prev_meeting).order_by('issue_order') if not all(map(lambda note: note.text == "", issue.notes()))]
+    issues = meeting.issue_set.normal_issue()
+    prev_meeting = meeting.previous_meeting()
+    prev_issues = prev_meeting.issue_set.has_notes()
     
     tex_string = render_to_string(
         'document_system/pdf/main.tex',
