@@ -142,6 +142,15 @@ class Issue(models.Model):
     def posting_table_issue_queryset(cls):
         return cls.objects.filter(meeting__in = Meeting.posting_table_meeting_queryset())
 
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            issue_order_max = self.meeting.issue_set.aggregate(models.Max('issue_order'))['issue_order__max']
+            if issue_order_max:
+                self.issue_order = issue_order_max + 1
+            else:
+                self.issue_order = 1
+        return super(Issue, self).save(*args, **kwargs)
+
     def __str__(self):
         return self.title
 
@@ -198,10 +207,7 @@ class Issue(models.Model):
         if self.is_append_issue():
             issue_number = "追加議案"
         else:
-            if self.issue_order == -1:
-                issue_number = ""
-            else:
-                issue_number = str(self.issue_order)
+            issue_number = str(self.issue_order)
 
         return issue_number
         

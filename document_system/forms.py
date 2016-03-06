@@ -48,7 +48,7 @@ class NormalIssueForm(IssueForm):
     def clean(self):
         cleaned_data = super(NormalIssueForm,self).clean()
         
-        if not cleaned_data.get('meeting').is_postable() :
+        if not cleaned_data.get('meeting').is_postable_normal_issue():
             self.add_error('meeting',"普通資料としての締め切りを過ぎています")
         return cleaned_data
 
