@@ -247,14 +247,12 @@ class Note(models.Model):
     text            = models.TextField(blank=True)
     hashed_password = models.TextField()
 
-    class Meta(object):
-        unique_together = ('issue','block')
-
     def __str__(self):
         return self.block.name + " " + self.issue.title
     
     class Meta:
         verbose_name_plural = "ブロック会議の議事録"
+        unique_together = ('issue','block')
 
 class Table(models.Model):
     '''表'''
