@@ -59,7 +59,7 @@ def edit_issue(request,issue_id=None):
 def delete_issue(request, issue_id=None):
     issue = Issue.objects.get(id__exact=issue_id)
     
-    if issue.is_editable():
+    if not issue.is_editable():
         return redirect('document_system:browse_issue_detail',pk=issue.id)
 
     if request.method == "POST":

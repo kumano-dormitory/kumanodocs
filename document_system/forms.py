@@ -87,10 +87,11 @@ class DeleteIssueForm(Form):
         cleaned_data = super(Form,self).clean()
         issue = Issue.objects.get(id__exact=cleaned_data.get('issue_id'))
 
-        if issue.hashed_password != hashlib.sha512(cleaned_data.get('hashed_password').encode('utf-8')).hexdigest():
-            self.add_error('hashed_password','パスワードが間違っています')
-        if not issue.meeting in list(Meeting.normal_issue_meetings()):
-            self.add_error('meeting',"普通資料としての締め切りを過ぎています")
+        if cleaned_data.get('hashed_password'):
+            if issue.hashed_password != hashlib.sha512(cleaned_data.get('hashed_password').encode('utf-8')).hexdigest():
+                self.add_error('hashed_password','パスワードが間違っています')
+            if not issue.meeting in list(Meeting.normal_issue_meetings()):
+                self.add_error('meeting',"普通資料としての締め切りを過ぎています")
         return cleaned_data
 
 class PostNoteForm(Form):
