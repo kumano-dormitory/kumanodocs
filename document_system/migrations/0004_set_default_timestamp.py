@@ -19,9 +19,9 @@ def forwards_func(apps, schema_editor):
     for issue in issues_null_timestamp:
         posted_date = issue.meeting.meeting_date - timedelta(days=2)
         if issue.issue_order < 0:
-            posted_hour = time(hour=13, tzinfo=pytz.timezone('Asia/Tokyo'))
+            posted_hour = time(hour=22, tzinfo=pytz.timezone('Asia/Tokyo'))
         else:
-            posted_hour = time(hour=11, tzinfo=pytz.timezone('Asia/Tokyo'))
+            posted_hour = time(hour=20, tzinfo=pytz.timezone('Asia/Tokyo'))
         timestamp = datetime.combine(posted_date, posted_hour)
 
         # updated_atの自動更新を無効にしないと、migrateした日時になってしまう
