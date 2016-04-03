@@ -217,7 +217,7 @@ class DownloadNoteListView(ListView):
     queryset      = Meeting.download_note_meeting_queryset()
     
 def download_document_detail(request, meeting_id=None):
-    meeting = Meeting.get(pk=meeting_id).select_related('issue')
+    meeting = Meeting.objects.get(pk=meeting_id).select_related('issue')
     if request.method == 'POST':
         form = IssueOrderForm(request.POST,meeting_id=meeting_id)
         if form.is_valid():
