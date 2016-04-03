@@ -4,7 +4,7 @@
     <dd>
         <small>
             {% if issue.meeting.is_migrated_from_old_system %}
-            {{issue.tag_eliminated_text|slice:"0:300"}}...<br>
+            {{issue.get_tag_eliminated_text|slice:"0:300"}}...<br>
             {% else %}
             {{issue.text|slice:"0:300"}}...<br>
             {% endif %}

@@ -6,8 +6,7 @@
 *.pyc
 __pycache__/
 local_settings.py
-*.sqlite3
-migrations/
+db.sqlite3
 secret_key.py
 nginx_users
 static/admin

@@ -42,12 +42,13 @@ class IssueForm(ModelForm):
 class NormalIssueForm(IssueForm):
     def __init__(self,*args,**kwargs):
         super(NormalIssueForm,self).__init__(*args,**kwargs)
-        self.fields['meeting'].queryset = Meeting.normal_meeting_queryset()
+        normal_meeting_choices = [ (str(meeting.pk), str(meeting)) for meeting in Meeting.normal_issue_meetings()]
+        self.fields['meeting'].choices = normal_meeting_choices
 
     def clean(self):
         cleaned_data = super(NormalIssueForm,self).clean()
-
-        if not cleaned_data.get('meeting') in list(Meeting.normal_meeting_queryset()):
+        
+        if not cleaned_data.get('meeting').is_postable_normal_issue():
             self.add_error('meeting',"普通資料としての締め切りを過ぎています")
         return cleaned_data
 
@@ -86,10 +87,11 @@ class DeleteIssueForm(Form):
         cleaned_data = super(Form,self).clean()
         issue = Issue.objects.get(id__exact=cleaned_data.get('issue_id'))
 
-        if issue.hashed_password != hashlib.sha512(cleaned_data.get('hashed_password').encode('utf-8')).hexdigest():
-            self.add_error('hashed_password','パスワードが間違っています')
-        if not issue.meeting in list(Meeting.normal_meeting_queryset()):
-            self.add_error('meeting',"普通資料としての締め切りを過ぎています")
+        if cleaned_data.get('hashed_password'):
+            if issue.hashed_password != hashlib.sha512(cleaned_data.get('hashed_password').encode('utf-8')).hexdigest():
+                self.add_error('hashed_password','パスワードが間違っています')
+            if not issue.meeting in list(Meeting.normal_issue_meetings()):
+                self.add_error('meeting',"普通資料としての締め切りを過ぎています")
         return cleaned_data
 
 class PostNoteForm(Form):
@@ -99,17 +101,17 @@ class PostNoteForm(Form):
     def __init__(self,*args,**kwargs):
         super(PostNoteForm,self).__init__(*args,**kwargs)
         
-        meeting = Meeting.posting_note_meeting_queryset().get()
+        meeting = Meeting.posting_note_meeting_queryset()
 
-        for issue in Issue.objects.filter(meeting__exact=meeting).order_by('issue_order'):
+        for issue in meeting.issue_set.order_by('issue_order'):
             self.fields['issue_' + str(issue.id)] = forms.CharField( widget=forms.Textarea ,label=issue.get_qualified_title(), required=False )
 
     def clean(self):
         cleaned_data = super(PostNoteForm,self).clean()
-
-        if Note.objects.filter( block__exact=Block.objects.get(id__exact=cleaned_data.get("block")), issue__meeting__exact=Meeting.posting_note_meeting_queryset().get() ).exists():
+        block = Block.objects.get(pk=cleaned_data.get("block"))
+        meeting = Meeting.posting_note_meeting_queryset()
+        if Note.exists_same_note(block, meeting):
             self.add_error(None, "既に議事録は投稿されています")
-
         return cleaned_data
 
 class EditNoteForm(Form):
@@ -123,7 +125,7 @@ class EditNoteForm(Form):
         
         self.fields['block'] = forms.IntegerField( widget=forms.HiddenInput, initial=block_id )
 
-        meeting = Meeting.posting_note_meeting_queryset().get()
+        meeting = Meeting.posting_note_meeting_queryset()
 
         for note in Note.objects.filter(issue__meeting__exact=meeting,block__id__exact=block_id).order_by('issue__issue_order'):
             self.fields['note_'+str(note.id)] = forms.CharField( widget=forms.Textarea, label=note.issue.get_qualified_title(), required=False ,initial=note.text)
@@ -131,10 +133,13 @@ class EditNoteForm(Form):
     def clean(self):
         cleaned_data = super(EditNoteForm,self).clean()
         
-        meeting = Meeting.posting_note_meeting_queryset().get()
-        issue   = Issue.objects.filter(meeting__exact=meeting).first()
-        if cleaned_data.get('hashed_password') != None and hashlib.sha512( cleaned_data.get('hashed_password').encode('utf-8') ).hexdigest() == Note.objects.get(block__id__exact=cleaned_data.get('block'),issue__exact=issue).hashed_password:
-            self.add_error('hashed_password',"パスワードが間違っています")
+        meeting = Meeting.posting_note_meeting_queryset()
+        issue   = meeting.issue_set.first()
+        if cleaned_data.get('hashed_password'):
+            posted_hashed_password = hashlib.sha512( cleaned_data.get('hashed_password').encode('utf-8') ).hexdigest()
+            stored_hashed_password = Note.objects.get(block__id__exact=cleaned_data.get('block'),issue__exact=issue).hashed_password
+            if posted_hashed_password != stored_hashed_password :
+                self.add_error('hashed_password',"パスワードが間違っています")
         return cleaned_data
 
 class TableForm(ModelForm):
@@ -168,7 +173,8 @@ class IssueOrderForm(Form):
 
         super(IssueOrderForm,self).__init__(*args,**kwargs)
         
-        issues = Issue.objects.filter(meeting__id__exact=meeting_id)
+        meeting = Meeting.objects.get(pk=meeting_id)
+        issues = meeting.issue_set.all()
         for issue in issues:
             self.fields['issue_'+str(issue.id)] = forms.IntegerField(min_value=1,max_value=len(issues))
 
