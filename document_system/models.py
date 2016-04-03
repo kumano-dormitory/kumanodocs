@@ -79,7 +79,7 @@ class Meeting(models.Model):
 
     def deadline_datetime(self):
         deadline_date = self.meeting_date - timedelta(days=2)
-        deadline_time = time(hour=12, tzinfo=pytz.timezone('Asia/Tokyo'))
+        deadline_time = time(hour=21, tzinfo=pytz.timezone('Asia/Tokyo'))
         deadline_datetime = datetime.combine(deadline_date, deadline_time)
         return deadline_datetime
 
