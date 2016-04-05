@@ -255,7 +255,7 @@ class Note(models.Model):
 
     @classmethod
     def exists_same_note(cls, block, meeting):
-        return cls.objects.exists(block__exact=block, issue__meeting__exact=meeting)
+        return cls.objects.filter(block__exact=block, issue__meeting__exact=meeting).exists()
 
     def __str__(self):
         return self.block.name + " " + self.issue.title
