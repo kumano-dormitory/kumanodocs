@@ -176,7 +176,7 @@ class Issue(models.Model):
             return False
 
     def is_append_issue(self):
-        if self.updated_at > self.meeting.deadline_datetime():
+        if self.created_at > self.meeting.deadline_datetime():
             return True
         else:
             return False
