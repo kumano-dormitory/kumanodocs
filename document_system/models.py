@@ -60,7 +60,7 @@ class Meeting(models.Model):
 
     @classmethod
     def download_note_meeting_queryset(cls):
-        return cls.objects.filter(meeting_date__lte=(date.today()))
+        return cls.objects.filter(meeting_date__lte=(date.today() + timedelta(days=15)))
     
     def is_migrated_from_old_system(self):
         if self.meeting_date < date(year=2015,month=9,day=30):
