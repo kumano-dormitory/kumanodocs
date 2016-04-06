@@ -276,7 +276,7 @@ def document_pdf(request, meeting_id=None):
 
 def note_pdf(request, meeting_id=None):
     meeting = Meeting.objects.get(id__exact=meeting_id)
-    issues = meeting.issue_set.has_notes().order_by('issue_order')
+    issues = meeting.issue_set.has_notes()
     tex_string = render_to_string(
         'document_system/pdf/note.tex',
         {'meeting':meeting,
