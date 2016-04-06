@@ -108,7 +108,7 @@ class IssueQuerySet(models.QuerySet):
         return filter(lambda issue: issue.is_normal_issue(), self)
 
     def has_notes(self):
-        return filter(lambda issue: issue.has_notes(), self)
+        return filter(lambda issue: issue.has_notes(), self.order_by('issue_order'))
 
 class IssueManager(models.Manager):
     def get_queryset(self):
