@@ -236,8 +236,8 @@ def download_document_detail(request, meeting_id=None):
                                 },
                                 context_instance=RequestContext(request))
 
-def output_pdf(request,tex_string,meeting_id,document_type):
-    filename = '.'.join(["kumanodocs_meeting",meeting_id, document_type])
+def output_pdf(request,tex_string,identifier,document_type):
+    filename = '.'.join(["kumanodocs_meeting",identifier, document_type])
     
     with open("/tmp/" + filename + ".tex",'w') as f:
         f.write(tex_string)
@@ -257,7 +257,6 @@ def output_pdf(request,tex_string,meeting_id,document_type):
         response = HttpResponse(f.read(),content_type="application/pdf")
         response['Content-Disposition'] = 'attachment; filename="' + filename + '.pdf"'
         return response
-
 
 def document_pdf(request, meeting_id=None):
     meeting = Meeting.objects.get(id__exact=meeting_id)
@@ -284,3 +283,16 @@ def note_pdf(request, meeting_id=None):
         context_instance=RequestContext(request))
     
     return output_pdf(request,tex_string,meeting_id,"note")
+
+def issue_pdf(request, pk=None):
+    issue = Issue.objects.get(id__exact=pk)
+
+    tex_string = render_to_string(
+        'document_system/pdf/preview.tex',
+        {'issue' :issue},
+        context_instance=RequestContext(request))
+
+    response = output_pdf(request,tex_string,pk,"issue_preview")
+    if response['Content-Disposition']:
+        response['Content-Disposition'] = response['Content-Disposition'].replace('attachment;', '')
+    return response

@@ -1,0 +1,41 @@
+{% autoescape off %}
+\documentclass[b5j,10pt]{ujarticle}
+\usepackage{listings}
+\usepackage{spverbatim}
+\usepackage{tocloft}
+\usepackage{here}
+\usepackage[top=5truemm,bottom=15truemm,left=5truemm,right=5truemm]{geometry}
+
+\lstset{
+breaklines=true
+1;2802;0c}
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+
+\begin{document}
+
+\section*{ {{ issue.get_qualified_title }} \\ \ \  \normalsize{ 文責：{{ issue.author }} } }
+\begin{spverbatim}{{ issue.text }}
+{% if issue.is_votable %}
+
+採決項目：
+{{ issue.vote_content }}
+{% endif %}\end{spverbatim}
+{% if issue.tables %}
+    {% for table in issue.tables %}
+        \begin{table}[H]
+        \begin{center}
+        \caption{ {{table.caption}} }
+        \begin{tabular}{ {% for row in table.get_list %}{% if forloop.first %}{% for column in row %}{% if forloop.first %}l{% else %}|r{% endif %}{% endfor %}{% endif %}{% endfor %} }
+           \hline
+           {% for row in table.get_list %}
+              {% for column in row %}\spverb {{column}} {% if not forloop.last %} & {% endif %}{% endfor %} \\ \hline      
+              {% if forloop.first %} \hline {% endif %}      
+           {% endfor %}
+        \end{tabular}
+        \end{center}
+        \end{table}
+    {% endfor %}
+{% endif %}
+
+\end{document}
+{% endautoescape %}
