@@ -109,6 +109,13 @@ class Meeting(models.Model, PdfGenerateMixin):
              'previous_issues':self.previous_meeting().issue_set.has_notes()})
         return self.output_pdf(tex_string, self.id, 'document')
 
+    def note_to_pdf(self):
+        tex_string = render_to_string(
+            'document_system/pdf/note.tex',
+            {'meeting':self,
+             'issues' :self.issue_set.has_notes()})
+        return self.output_pdf(tex_string, self.id, 'note')
+
     class Meta:
         verbose_name_plural = "ブロック会議の日程"
         ordering = ('-meeting_date',)

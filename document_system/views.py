@@ -276,15 +276,11 @@ def document_pdf(request, meeting_id=None):
         return render_pdf_error(request, e)
 
 def note_pdf(request, meeting_id=None):
-    meeting = Meeting.objects.get(id__exact=meeting_id)
-    issues = meeting.issue_set.has_notes()
-    tex_string = render_to_string(
-        'document_system/pdf/note.tex',
-        {'meeting':meeting,
-         'issues' :issues,},
-        context_instance=RequestContext(request))
-    
-    return output_pdf(request,tex_string,meeting_id,"note")
+    try:
+        pdf_file = Meeting.objects.get(pk=meeting_id).note_to_pdf()
+        return pdf_to_response(pdf_file)
+    except Exception as e:
+        return render_pdf_error(request, e)
 
 def issue_pdf(request, pk=None):
     issue = Issue.objects.get(id__exact=pk)
