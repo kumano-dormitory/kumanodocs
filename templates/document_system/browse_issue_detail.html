@@ -62,7 +62,12 @@
 
     {% if issue.is_editable %}
     <h3 class='page-header'>PDFプレビュー</h3>
-    <object style='width: 100%; height: 1000px;' data='{% url 'document_system:browse_issue_detail_pdf' pk=issue.id %}' type='application/pdf'></object>
+    {% if issue.is_pdf_convertible %}
+        <object style='width: 100%; height: 1000px;' data='data:application/pdf;base64,{{ issue.to_base64_pdf }}' type='application/pdf'></object>
+    {% else %}
+        PDFが表示できません。このエラーは多くの場合、表の体裁が崩れていることによって発生します。<br />
+        このままだとブロック会議資料が印刷できないので、資料委員に相談するなどして、議案を修正してください。
+    {% endif %}
     {% endif %}
 
     {% if notes %}

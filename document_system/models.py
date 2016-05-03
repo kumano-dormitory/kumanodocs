@@ -153,7 +153,7 @@ class IssueManager(models.Manager):
     def has_notes(self):
         return self.get_queryset().has_notes()
 
-class Issue(models.Model):
+class Issue(models.Model, PdfGenerateMixin):
     '''議案'''
     meeting         = models.ForeignKey(Meeting,verbose_name="日付")
     issue_types     = models.ManyToManyField(IssueType,verbose_name="議案の種類")
@@ -215,6 +215,13 @@ class Issue(models.Model):
     def is_normal_issue(self):
         return not self.is_append_issue()
 
+    def is_pdf_convertible(self):
+        try:
+            self.to_pdf()
+            return True
+        except:
+            return False
+
     def has_notes(self):
         '''
         どこかのブロックが空でない議事録を投稿していればTrue
@@ -241,7 +248,17 @@ class Issue(models.Model):
             issue_number = str(self.issue_order)
 
         return issue_number
-        
+
+    def to_pdf(self):
+        tex_string = render_to_string(
+            'document_system/pdf/preview.tex',
+            {'issue' :self})
+        return self.output_pdf(tex_string, self.id, 'issue')
+
+    def to_base64_pdf(self):
+        import base64
+        return base64.b64encode(self.to_pdf().read())
+
     class Meta:
         verbose_name_plural = "ブロック会議の議案"
         ordering = ('-meeting__meeting_date','issue_order')
