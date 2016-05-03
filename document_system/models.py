@@ -4,10 +4,25 @@ from django.db import models
 from django.utils import html
 from datetime import date, datetime, time, timedelta
 from django.db.models import Q
+from django.template.loader import render_to_string
 import csv
 import pytz
 
-class Meeting(models.Model):
+class PdfGenerateMixin(object):
+    def output_pdf(self, tex_string,identifier,document_type):
+        filename = '.'.join(["kumanodocs_meeting",str(identifier), document_type])
+
+        with open("/tmp/" + filename + ".tex",'w') as f:
+            f.write(tex_string)
+
+        import subprocess
+
+        subprocess.check_output(['ptex2pdf', '-u', '-l', filename + '.tex'],cwd='/tmp')
+        subprocess.check_output(['ptex2pdf', '-u', '-l', filename + '.tex'],cwd='/tmp')
+
+        return open("/tmp/" + filename + ".pdf","rb")
+
+class Meeting(models.Model, PdfGenerateMixin):
     '''ブロック会議'''
     meeting_date = models.DateField("日付")
     
@@ -85,6 +100,14 @@ class Meeting(models.Model):
 
     def previous_meeting(self):
         return Meeting.objects.filter(meeting_date__lt=self.meeting_date).order_by('-meeting_date').first()
+
+    def to_pdf(self):
+        tex_string = render_to_string(
+            'document_system/pdf/main.tex',
+            {'meeting':self,
+             'issues' :self.issue_set.normal_issue(),
+             'previous_issues':self.previous_meeting().issue_set.has_notes()})
+        return self.output_pdf(tex_string, self.id, 'document')
 
     class Meta:
         verbose_name_plural = "ブロック会議の日程"

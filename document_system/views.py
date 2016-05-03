@@ -247,7 +247,7 @@ def output_pdf(request,tex_string,identifier,document_type):
     try:
         subprocess.check_output(['ptex2pdf', '-u', '-l', filename + '.tex'],cwd='/tmp')
         subprocess.check_output(['ptex2pdf', '-u', '-l', filename + '.tex'],cwd='/tmp')
-    except subprocess.CalledProcessError as e:
+    except Exception as e:
         return render_to_response('document_system/pdf_error.html',
                                     {'error_output':e.output
                                     },
@@ -258,20 +258,22 @@ def output_pdf(request,tex_string,identifier,document_type):
         response['Content-Disposition'] = 'attachment; filename="' + filename + '.pdf"'
         return response
 
+def pdf_to_response(pdf_file):
+    response = HttpResponse(pdf_file.read(),content_type="application/pdf")
+    response['Content-Disposition'] = 'attachment; filename="' + pdf_file.name
+    return response
+
+def render_pdf_error(request, e):
+    return render_to_response('document_system/pdf_error.html',
+                                {'error_output':e.output},
+                                context_instance=RequestContext(request))
+
 def document_pdf(request, meeting_id=None):
-    meeting = Meeting.objects.get(id__exact=meeting_id)
-    issues = meeting.issue_set.normal_issue()
-    prev_meeting = meeting.previous_meeting()
-    prev_issues = prev_meeting.issue_set.has_notes()
-    
-    tex_string = render_to_string(
-        'document_system/pdf/main.tex',
-        {'meeting':meeting,
-         'issues' :issues,
-         'previous_issues':prev_issues,},
-        context_instance=RequestContext(request))
-    
-    return output_pdf(request,tex_string,meeting_id,"document")
+    try:
+        pdf_file = Meeting.objects.get(pk=meeting_id).to_pdf()
+        return pdf_to_response(pdf_file)
+    except Exception as e:
+        return render_pdf_error(request, e)
 
 def note_pdf(request, meeting_id=None):
     meeting = Meeting.objects.get(id__exact=meeting_id)
@@ -293,6 +295,6 @@ def issue_pdf(request, pk=None):
         context_instance=RequestContext(request))
 
     response = output_pdf(request,tex_string,pk,"issue_preview")
-    if response['Content-Disposition']:
+    if 'Content-Disposition' in response:
         response['Content-Disposition'] = response['Content-Disposition'].replace('attachment;', '')
     return response
