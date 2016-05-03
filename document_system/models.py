@@ -167,7 +167,8 @@ class Issue(models.Model):
         return html.strip_tags(self.text)
     
     def is_votable(self):
-        return IssueType.objects.get(name__exact="採決") in self.issue_types.all()
+        return IssueType.objects.get(name__exact="採決") in self.issue_types.all() or \
+               IssueType.objects.get(name__exact="採決予定") in self.issue_types.all()
 
     def is_editable(self):
         if datetime.now(tz=pytz.timezone('Asia/Tokyo')) < self.meeting.deadline_datetime():

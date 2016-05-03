@@ -21,6 +21,10 @@ class IssueForm(ModelForm):
         if issue_types != None and saiketsu in issue_types and vote_content == "":
             self.add_error('vote_content',"議案の種類に「採決」が選択されているので、「採決項目」は必須です。")
 
+        saiketsu_yotei = IssueType.objects.get(name='採決予定')
+        if issue_types != None and saiketsu_yotei in issue_types and vote_content == "":
+            self.add_error('vote_content',"議案の種類に「採決予定」が選択されているので、「採決項目」は必須です。")
+
         # hashed_password変数に入っている平文のパスワードをhashする
         if cleaned_data.get("hashed_password") != None:
             cleaned_data['hashed_password'] = hashlib.sha512(cleaned_data["hashed_password"].encode("utf-8")).hexdigest()
