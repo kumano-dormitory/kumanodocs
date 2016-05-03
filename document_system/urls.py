@@ -18,7 +18,6 @@ urlpatterns = patterns('',
     
     url(r'^browse_issue/$', views.BrowseIssueListView.as_view() , name='browse_issue_list'),
     url(r'^browse_issue/(?P<pk>\d+)/$', views.BrowseIssueDetailView.as_view(), name='browse_issue_detail'),
-    url(r'^browse_issue/(?P<pk>\d+)/pdf$', views.issue_pdf, name='browse_issue_detail_pdf'),
 
     url(r'^search_issue/$', views.SearchIssueListView.as_view(), name='search_issue'),
     

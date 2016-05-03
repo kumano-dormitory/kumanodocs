@@ -236,31 +236,10 @@ def download_document_detail(request, meeting_id=None):
                                 },
                                 context_instance=RequestContext(request))
 
-def output_pdf(request,tex_string,identifier,document_type):
-    filename = '.'.join(["kumanodocs_meeting",identifier, document_type])
-    
-    with open("/tmp/" + filename + ".tex",'w') as f:
-        f.write(tex_string)
-
-    import subprocess
-    
-    try:
-        subprocess.check_output(['ptex2pdf', '-u', '-l', filename + '.tex'],cwd='/tmp')
-        subprocess.check_output(['ptex2pdf', '-u', '-l', filename + '.tex'],cwd='/tmp')
-    except Exception as e:
-        return render_to_response('document_system/pdf_error.html',
-                                    {'error_output':e.output
-                                    },
-                                    context_instance=RequestContext(request))
-    
-    with open("/tmp/" + filename + ".pdf","rb") as f:
-        response = HttpResponse(f.read(),content_type="application/pdf")
-        response['Content-Disposition'] = 'attachment; filename="' + filename + '.pdf"'
-        return response
-
 def pdf_to_response(pdf_file):
     response = HttpResponse(pdf_file.read(),content_type="application/pdf")
     response['Content-Disposition'] = 'attachment; filename="' + pdf_file.name
+    pdf_file.close()
     return response
 
 def render_pdf_error(request, e):
@@ -281,16 +260,3 @@ def note_pdf(request, meeting_id=None):
         return pdf_to_response(pdf_file)
     except Exception as e:
         return render_pdf_error(request, e)
-
-def issue_pdf(request, pk=None):
-    issue = Issue.objects.get(id__exact=pk)
-
-    tex_string = render_to_string(
-        'document_system/pdf/preview.tex',
-        {'issue' :issue},
-        context_instance=RequestContext(request))
-
-    response = output_pdf(request,tex_string,pk,"issue_preview")
-    if 'Content-Disposition' in response:
-        response['Content-Disposition'] = response['Content-Disposition'].replace('attachment;', '')
-    return response
