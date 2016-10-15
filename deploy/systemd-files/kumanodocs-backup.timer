@@ -1,9 +1,0 @@
-[Unit]
-Description=Kumano Dormitory Document System Backup Task Timer
-
-[Timer]
-OnCalendar=daily
-Persistent=true
-
-[Install]
-WantedBy=timers.target
