@@ -1,2 +1,0 @@
-dropbox>=3
-gunicorn>=19
