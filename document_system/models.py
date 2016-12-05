@@ -55,7 +55,7 @@ class Meeting(models.Model, PdfGenerateMixin):
 
     @classmethod 
     def posting_table_meeting_queryset(cls):
-        return cls.normal_issue_meetings() or cls.append_meeting_queryset()
+        return list(cls.normal_issue_meetings()) + list(cls.append_meeting_queryset())
 
     @classmethod
     def posting_note_meeting_queryset(cls):
