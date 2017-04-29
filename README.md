@@ -9,10 +9,15 @@
 
 ```
 $ pip install -r freeze.txt
-$ mv secret_key.py kumanodocs/
+$ cd kumanodocs
+$ cp secret_key.py.example secret_key.py 
+$ vi secret_key.py
+$ cd ..
 $ ./manage.py syncdb  # add super user
 $ sudo updmap-sys --setoption kanjiEmbed ipaex
 ```
+You can generate key from
+http://www.miniwebtool.com/django-secret-key-generator/
 
 # Run App
 
