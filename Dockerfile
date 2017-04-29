@@ -7,6 +7,7 @@ RUN apt-get install -y texlive-lang-cjk
 RUN updmap-sys --setoption kanjiEmbed ipaex
 ADD freeze.txt .
 RUN pip install -r freeze.txt
+RUN apt-get install sqlite3
 
 WORKDIR /app
 ADD ./static /var/static

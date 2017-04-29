@@ -3,3 +3,5 @@ PyMySQL==0.6.6
 django-bootstrap-form==3.2
 pytz>=2015.7
 gunicorn>=19
+django_nose
+django-dynamic-fixture
