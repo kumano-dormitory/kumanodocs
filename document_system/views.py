@@ -20,7 +20,7 @@ def top(request):
 
 class IssueView(FormView):
     template_name = 'document_system/post_issue.html'
-    
+
     def form_valid(self, form):
         issue = form.save()
         if self.request.POST.get('table_addition'):
@@ -38,7 +38,7 @@ def edit_issue(request,issue_id=None):
 
     if not issue.is_editable():
         return redirect('document_system:browse_issue_detail',pk=issue.id)
-    
+
     if request.method == "POST":
         form = EditIssueForm(request.POST,instance=issue)
         if form.is_valid():
@@ -48,8 +48,8 @@ def edit_issue(request,issue_id=None):
             return redirect('document_system:browse_issue_detail',pk=issue.id)
     else:
         issue.hashed_password = ''
-        form = EditIssueForm(instance=issue) 
-    
+        form = EditIssueForm(instance=issue)
+
     return render_to_response('document_system/post_issue.html',
                                 {'form':form
                                 ,'tables':issue.tables
@@ -58,7 +58,7 @@ def edit_issue(request,issue_id=None):
 
 def delete_issue(request, issue_id=None):
     issue = Issue.objects.get(id__exact=issue_id)
-    
+
     if not issue.is_editable():
         return redirect('document_system:browse_issue_detail',pk=issue.id)
 
@@ -86,7 +86,7 @@ class BrowseIssueDetailView(DetailView):
     context_object_name = 'issue'
     template_name       = 'document_system/browse_issue_detail.html'
     model               = Issue
-    
+
     def get_context_data(self,**kwargs):
         context = super(BrowseIssueDetailView,self).get_context_data(**kwargs)
         context['notes']   = [note for note in Note.objects.filter(issue__exact=context['issue']).order_by('block') if note.text != ""]
@@ -106,10 +106,10 @@ class BrowseDocumentView(ListView):
     def get_queryset(self):
         meeting = get_object_or_404(Meeting, id__exact=self.kwargs['pk'])
         return meeting.issue_set.order_by('issue_order')
-    
+
 class SearchIssueListView(BrowseIssueListView):
     template_name = 'document_system/search_issue_list.html'
-    
+
     def get_queryset(self):
         form = SearchIssueForm(self.request.GET)
         if form.is_valid():
@@ -124,14 +124,14 @@ class SearchIssueListView(BrowseIssueListView):
         context = super(SearchIssueListView,self).get_context_data(**kwargs)
         context['search_keywords'] = self.request.GET['keywords']
         return context
-    
+
 def post_note(request, block_id=None):
     if request.method == "POST":
         form = PostNoteForm(request.POST)
         if form.is_valid():
             block = Block.objects.get(pk=form.cleaned_data['block'])
             hashed_password = hashlib.sha512(form.cleaned_data['hashed_password'].encode("UTF-8")).hexdigest()
-            
+
             for issue in Meeting.posting_note_meeting_queryset().issue_set.all():
                 note = Note()
                 note.issue = issue
@@ -141,7 +141,7 @@ def post_note(request, block_id=None):
                 note.save()
 
             return redirect('document_system:top')
-            
+
     else:
         form = PostNoteForm(initial={'block':int(block_id)})
     return render_to_response('document_system/post_note.html',
@@ -157,14 +157,14 @@ def edit_note(request, block_id=None):
         if form.is_valid():
             posting_block = Block.objects.get(pk=form.cleaned_data['block'])
             hashed_password = hashlib.sha512(form.cleaned_data['hashed_password'].encode("UTF-8")).hexdigest()
-            
+
             for issue in Meeting.posting_note_meeting_queryset().issue_set.all():
                 note = Note.objects.get(issue__exact=issue,block__exact=posting_block)
                 note.text = form.cleaned_data['note_' + str(note.id)]
                 note.save()
 
             return redirect('document_system:top')
-            
+
     else:
         form = EditNoteForm(block_id=block_id)
 
@@ -193,7 +193,7 @@ class EditTableView(UpdateView):
     form_class    = TableForm
 
     def render_to_response(self,context, **response_kwargs):
-        if not self.object.issue in Issue.posting_table_issue_queryset():
+        if not self.object.issue in Issue.posting_table_issues():
             return redirect('document_system:top')
 
         return super(EditTableView,self).render_to_response(context, **response_kwargs)
@@ -215,7 +215,7 @@ class DownloadNoteListView(ListView):
     context_object_name = 'meeting_list'
     template_name = 'document_system/download_note_list.html'
     queryset      = Meeting.download_note_meeting_queryset()
-    
+
 def download_document_detail(request, meeting_id=None):
     meeting = Meeting.objects.get(pk=meeting_id)
     if request.method == 'POST':
@@ -228,7 +228,7 @@ def download_document_detail(request, meeting_id=None):
             return redirect('document_system:get_pdf',meeting_id=meeting_id)
     else:
         form = IssueOrderForm(meeting_id=meeting_id)
-    
+
     return render_to_response('document_system/download_document_detail.html',
                                 {'issues':meeting.issue_set.order_by('issue_order')
                                 ,'form':form

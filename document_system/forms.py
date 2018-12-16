@@ -12,7 +12,7 @@ class IssueForm(ModelForm):
 
     def clean(self):
         cleaned_data = super(IssueForm, self).clean()
-        
+
         # 採決項目が無いのを弾く
         saiketsu = IssueType.objects.get(name="採決")
         issue_types = self.cleaned_data.get("issue_types")
@@ -28,7 +28,7 @@ class IssueForm(ModelForm):
         # hashed_password変数に入っている平文のパスワードをhashする
         if cleaned_data.get("hashed_password") != None:
             cleaned_data['hashed_password'] = hashlib.sha512(cleaned_data["hashed_password"].encode("utf-8")).hexdigest()
-            
+
         return cleaned_data
 
     class Meta:
@@ -51,7 +51,7 @@ class NormalIssueForm(IssueForm):
 
     def clean(self):
         cleaned_data = super(NormalIssueForm,self).clean()
-        
+
         if not cleaned_data.get('meeting').is_postable_normal_issue():
             self.add_error('meeting',"普通資料としての締め切りを過ぎています")
         return cleaned_data
@@ -101,10 +101,10 @@ class DeleteIssueForm(Form):
 class PostNoteForm(Form):
     block = forms.IntegerField( widget=forms.HiddenInput )
     hashed_password = forms.CharField( label="パスワード" )
-    
+
     def __init__(self,*args,**kwargs):
         super(PostNoteForm,self).__init__(*args,**kwargs)
-        
+
         meeting = Meeting.posting_note_meeting_queryset()
 
         for issue in meeting.issue_set.order_by('issue_order'):
@@ -126,17 +126,17 @@ class EditNoteForm(Form):
         del kwargs['block_id']
 
         super(EditNoteForm,self).__init__(*args,**kwargs)
-        
+
         self.fields['block'] = forms.IntegerField( widget=forms.HiddenInput, initial=block_id )
 
         meeting = Meeting.posting_note_meeting_queryset()
 
         for note in Note.objects.filter(issue__meeting__exact=meeting,block__id__exact=block_id).order_by('issue__issue_order'):
             self.fields['note_'+str(note.id)] = forms.CharField( widget=forms.Textarea, label=note.issue.get_qualified_title(), required=False ,initial=note.text)
-    
+
     def clean(self):
         cleaned_data = super(EditNoteForm,self).clean()
-        
+
         meeting = Meeting.posting_note_meeting_queryset()
         issue   = meeting.issue_set.first()
         if cleaned_data.get('hashed_password'):
@@ -150,13 +150,33 @@ class TableForm(ModelForm):
     '''表のフォーム'''
 
     hashed_password = forms.CharField(label="議案のパスワード")
-    issue = forms.ModelChoiceField(queryset=Issue.posting_table_issue_queryset(),label="議案")
+    issue = forms.ModelChoiceField(queryset=Issue.objects.none(),label="議案")
+    """
+    なぜ
+        issue = forms.ModelChoiceField(queryset=Issue.objects.posting_table_issues(),label="議案")
+    とせずに
+        issue = forms.ModelChoiceField(queryset=Issue.objects.none(),label="議案")
+    とした上で，__init__内で
+        self.fields["issue"].queryset = Issue.posting_table_issues()
+    としてるのか？
+
+    なぜなら，forms.ModelChoiceFieldはquerysetをキャッシュするからである．本来であればquerysetにはdjangoのquerysetが入るため，
+    querysetがキャッシュされていたとしても，再度DBにqueryを投げるため検索結果(issueのリスト)は毎回更新される．
+    しかし，Issue.posting_table_issues()が返すのはquerysetではなくIssueのリストである．
+    従って，これがキャッシュされると，検索結果がモロにキャッシュされることになり，再起動するまでissueのリストが更新されない．
+
+    このため，TableFormが初期化されるタイミングで毎回issueのリストをfetchしなおしてセットしてやる必要がある．
+    """
+
+    def __init__(self):
+        super(TableForm, self).__init__()
+        self.fields["issue"].queryset = Issue.posting_table_issues()
 
     def clean(self):
         cleaned_data = super(TableForm, self).clean()
         if not (cleaned_data.get('hashed_password') != None and hashlib.sha512( cleaned_data.get('hashed_password').encode('utf-8') ).hexdigest() == cleaned_data.get('issue').hashed_password):
             self.add_error('hashed_password',"パスワードが間違っています")
-        if not cleaned_data.get('issue') in Issue.posting_table_issue_queryset():
+        if not cleaned_data.get('issue') in Issue.posting_table_issues():
             self.add_error('issue',"この議案に対する表は投稿できません。")
         return cleaned_data
 
@@ -176,7 +196,7 @@ class IssueOrderForm(Form):
         del kwargs['meeting_id']
 
         super(IssueOrderForm,self).__init__(*args,**kwargs)
-        
+
         meeting = Meeting.objects.get(pk=meeting_id)
         issues = meeting.issue_set.all()
         for issue in issues:

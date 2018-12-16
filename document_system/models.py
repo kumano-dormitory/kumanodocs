@@ -25,10 +25,10 @@ class PdfGenerateMixin(object):
 class Meeting(models.Model, PdfGenerateMixin):
     '''ブロック会議'''
     meeting_date = models.DateField("日付")
-    
+
     def __str__(self):
         return self.meeting_date.strftime('%Y-%m-%d')
-    
+
     @classmethod
     def normal_issue_meetings(cls):
         _meetings = cls.objects.filter(meeting_date__gte=date.today()).order_by('meeting_date')
@@ -37,7 +37,7 @@ class Meeting(models.Model, PdfGenerateMixin):
     @classmethod
     def exists_normal_issue_meetings(cls):
         return bool(list(cls.normal_issue_meetings()))
-    
+
     @classmethod
     def append_meeting_queryset(cls):
         if datetime.now().time() <= time(hour=12):
@@ -48,13 +48,13 @@ class Meeting(models.Model, PdfGenerateMixin):
             return cls.objects.filter(meeting_date__exact=(date.today() + timedelta(days=1)))
         else :
             return cls.objects.none()
-    
+
     @classmethod
     def exists_append(cls):
         return cls.append_meeting_queryset().exists()
 
-    @classmethod 
-    def posting_table_meeting_queryset(cls):
+    @classmethod
+    def posting_table_meetings(cls):
         return list(cls.normal_issue_meetings()) + list(cls.append_meeting_queryset())
 
     @classmethod
@@ -65,7 +65,7 @@ class Meeting(models.Model, PdfGenerateMixin):
             return cls.objects.get(meeting_date__exact=(date.today() - timedelta(days=1)))
         else:
             return cls.objects.none()
-    
+
     @classmethod
     def rearrange_issues_meeting_queryset(cls):
         if datetime.now().time() < time(hour=12):
@@ -76,7 +76,7 @@ class Meeting(models.Model, PdfGenerateMixin):
     @classmethod
     def download_note_meeting_queryset(cls):
         return cls.objects.all()[:10]
-    
+
     def is_migrated_from_old_system(self):
         if self.meeting_date < date(year=2015,month=9,day=30):
             return True
@@ -143,7 +143,7 @@ class IssueQuerySet(models.QuerySet):
 class IssueManager(models.Manager):
     def get_queryset(self):
         return IssueQuerySet(self.model, using=self._db)
-    
+
     def append_issue(self):
         return self.get_queryset().append_issue()
 
@@ -167,10 +167,10 @@ class Issue(models.Model, PdfGenerateMixin):
     updated_at      = models.DateTimeField(auto_now=True, null=False)
 
     objects = IssueManager()
-    
+
     @classmethod
-    def posting_table_issue_queryset(cls):
-        return cls.objects.filter(meeting__in = Meeting.posting_table_meeting_queryset())
+    def posting_table_issues(cls):
+        return list(cls.objects.filter(meeting__in = Meeting.posting_table_meetings()))
 
     def save(self, *args, **kwargs):
         if not self.pk:
@@ -189,13 +189,13 @@ class Issue(models.Model, PdfGenerateMixin):
 
     def get_qualified_title_for_note(self):
         return "【0 - %s】%s【%s】" % (self.issue_number(), self.title, self.issue_types_str())
-    
+
     def get_title_with_types(self):
         return "%s【%s】" % (self.title, self.issue_types_str())
 
     def get_tag_eliminated_text(self):
         return html.strip_tags(self.text)
-    
+
     def is_votable(self):
         return IssueType.objects.get(name__exact="採決") in self.issue_types.all() or \
                IssueType.objects.get(name__exact="採決予定") in self.issue_types.all()
@@ -211,7 +211,7 @@ class Issue(models.Model, PdfGenerateMixin):
             return True
         else:
             return False
-    
+
     def is_normal_issue(self):
         return not self.is_append_issue()
 
@@ -237,7 +237,7 @@ class Issue(models.Model, PdfGenerateMixin):
 
     def tables(self):
         return self.table_set.all()#.order_by('table_order')
-    
+
     def issue_types_str(self):
         return "・".join([t.name for t in self.issue_types.all()])
 
@@ -257,12 +257,12 @@ class Issue(models.Model, PdfGenerateMixin):
 
     def to_base64_pdf(self):
         import base64
-        return base64.b64encode(self.to_pdf().read())
+        return ""#base64.b64encode(self.to_pdf().read())
 
     class Meta:
         verbose_name_plural = "ブロック会議の議案"
         ordering = ('-meeting__meeting_date','issue_order')
-    
+
 class Block(models.Model):
     '''ブロック'''
     name = models.TextField()
@@ -273,7 +273,7 @@ class Block(models.Model):
     @classmethod
     def all_blocks(cls):
         return cls.objects.all()
-    
+
     @classmethod
     def blocks_posted_notes(cls):
         meeting = Meeting.posting_note_meeting_queryset()
@@ -307,7 +307,7 @@ class Note(models.Model):
 
     def __str__(self):
         return self.block.name + " " + self.issue.title
-    
+
     class Meta:
         verbose_name_plural = "ブロック会議の議事録"
         unique_together = ('issue','block')
